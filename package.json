@@ -1,0 +1,41 @@
+{
+  "name": "ts-mix",
+  "version": "0.1.0",
+  "description": "Yet another library for the implementation of mixins in TypeScript...",
+  "main": "dist/index.js",
+  "scripts": {
+    "watch": "webpack --watch",
+    "build": "webpack",
+    "build-prod": "webpack --production",
+    "compile": "tsc -p tsconfig.es2015.json",
+    "test": "npm run compile && mocha ./test/tests/**/*.js",
+    "preversion": "npm run test && npm run build-prod",
+    "postversion": "git add dist/ && git commit -m '- publish new version' && git push --follow-tags && npm publish"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.2.0",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.0.12",
+    "chai": "^4.2.0",
+    "copy-webpack-plugin": "^5.0.4",
+    "mocha": "^6.1.4",
+    "source-map-loader": "^0.2.4",
+    "terser-webpack-plugin": "^1.4.1",
+    "ts-loader": "^6.0.4",
+    "ts-node": "^8.3.0",
+    "tslib": "^1.10.0",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.2",
+    "uglifyjs-webpack-plugin": "^2.1.3",
+    "webpack": "^4.35.2",
+    "webpack-cli": "^3.3.5"
+  },
+  "greenkeeper": {
+    "ignore": [
+      "webpack",
+      "webpack-cli"
+    ]
+  }
+}

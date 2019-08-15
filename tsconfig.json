@@ -1,0 +1,40 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "incremental": false,
+    "skipLibCheck": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "lib": [
+      "es2015",
+      "dom"
+    ],
+    "module": "es2015",
+    "moduleResolution": "node",
+    "declaration": true,
+    "outDir": "./lib",
+    "sourceMap": true,
+    "removeComments": true,
+    "baseUrl": "./src",
+    "allowSyntheticDefaultImports": true,
+    "preserveConstEnums": true,
+    "pretty": true,
+    "diagnostics": false,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "strict": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "./node_modules"
+  ]
+}
