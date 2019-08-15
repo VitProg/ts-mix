@@ -14,7 +14,7 @@ export type MergeAll<Arr extends any[]> = {
     empty: {},
     cons: ((...args: Arr) => any) extends ((x: infer X, ...xs: infer Xs) => any)
         ? Merge<X, MergeAll<Xs>>
-        : never
+        : never,
 }[Arr extends [] ? {} : 'cons'];
 
 

@@ -29,9 +29,8 @@ describe("", () => {
         },
     });
 
+    @use(mixinA, mixinB)
     class ClassA {
-        @use(mixinA, mixinB) mixins!: MixinsProp<[typeof mixinA, typeof mixinB]>;
-
         fieldInClassA = '111';
         test: number;
 
@@ -46,12 +45,13 @@ describe("", () => {
     interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {}
 
     // @ts-ignore
-    let temp: IClassA;
+    let temp: ClassA;
     // @ts-ignore
     let rnd: number;
 
     beforeEach(() => {
         temp = (new ClassA(rnd = Math.random())) as any;
+        console.log(temp);
     });
 
 
