@@ -19,8 +19,8 @@ module.exports = [
             filename: isProd ? 'index.js' : undefined,
             path: path.resolve(__dirname, isProd ? 'dist' : 'test'),
             publicPath: '/',
-            // libraryTarget: 'umd',
-            // library: 'ts-mix',
+            libraryTarget: 'umd',
+            library: 'ts-mix',
         },
         resolve: {
             extensions: ['.ts', '.js'],
