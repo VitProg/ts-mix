@@ -4,6 +4,6 @@
     "module": "none",
     "moduleResolution": "node",
     "outDir": "./test",
-    "declaration": false
+    "declaration": true
   }
 }

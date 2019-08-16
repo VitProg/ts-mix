@@ -1,4 +1,4 @@
-import {AnyObject, ArrayValues, MergeAll, UnionToIntersection} from "./common.types";
+import {AnyObject, ArrayValues, UnionToIntersection} from "./common.types";
 
 interface IMixinBase<Name extends string> {
     mixinName: Name;
@@ -24,3 +24,13 @@ export type IUseMixins<Mixins extends Array<Mixin<any, any>>> = ClearMixin<Merge
 
 export type MixinTarget<M extends Mixin<any, any> = never> = AnyObject & IUseMixins<M extends Mixin<any, any> ? [M] : []>;
 export type WithMixin<M extends Mixin<any, any>> = IUseMixins<[M]>;
+
+
+type Merge<A, B> = Omit<A, keyof B> & B;
+type MergeAll<Arr extends any[]> = {
+    empty: {},
+    cons: ((...args: Arr) => any) extends ((x: infer X, ...xs: infer Xs) => any)
+        ? Merge<X, MergeAll<Xs>>
+        : never,
+}[Arr extends [] ? {} : 'cons'];
+

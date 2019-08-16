@@ -1,9 +1,11 @@
+import * as chai from 'chai';
+import {mixin, mixinTyped} from "../methods";
 import {use} from "../decorators";
 import {IUseMixins} from "../types";
-import {mixin, mixinTyped} from "../index";
-import * as chai from 'chai';
+import {haveMixin, haveMixins} from "../type-guards";
 
 const expect = chai.expect;
+
 
 describe("", () => {
 
@@ -69,7 +71,9 @@ describe("", () => {
             return 'from classA';
         }
     }
-    interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {}
+
+    interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {
+    }
 
     // @ts-ignore
     let temp: ClassA;
@@ -99,6 +103,20 @@ describe("", () => {
         expect(temp.sameNameMethod()).equal('from classA');
         expect(temp.mixins.mixinA.sameNameMethod()).equal('from mixinA');
         expect(temp.mixins.mixinB.sameNameMethod()).equal('from mixinB');
+    });
+
+    it("should be type guards correct work", () => {
+        const mixinC = mixin('mixinC', {
+            methodC() {
+                return 'methodC';
+            },
+        });
+        expect(haveMixin(temp, mixinA)).true;
+        expect(haveMixin(temp, mixinB)).true;
+        expect(haveMixin(temp, mixinC)).false;
+        expect(haveMixins(temp, mixinA)).true;
+        expect(haveMixins(temp, mixinA, mixinB)).true;
+        expect(haveMixins(temp, mixinA, mixinB, mixinC)).false;
     });
 
 });

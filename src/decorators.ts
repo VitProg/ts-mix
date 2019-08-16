@@ -1,6 +1,7 @@
 import {IUseMixins, Mixin} from "./types";
 import {AnyObject, Constructor} from "./common.types";
 
+
 export function use<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins) {
     return function<T extends Constructor<AnyObject>>(this: unknown, ctor: T) {
         // noinspection UnnecessaryLocalVariableJS
@@ -10,7 +11,6 @@ export function use<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: M
 
                 (result.mixins as AnyObject) = {};
 
-                // result.mixins = mix(result,  clientKeys, ...mixins);
                 for (const mixin of mixins) {
                     const mixinName = mixin.mixinName;
                     (result.mixins as AnyObject)[mixinName] = mixin;
