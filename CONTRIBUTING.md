@@ -4,12 +4,6 @@ git clone https://github.com/VitProg/ts-mix.git
 npm i
 ```
 
-# Dev 
-
-```
-npm start
-```
-
 # Releasing
 * Think if your change is `major (breaking api) / minor (potentially breaking but you tried your best not to) / patch (safe)`.
 * See current version in `package.json` and update `CHANGELOG.md` adding the *planned release version* notes.
