@@ -14,6 +14,8 @@ describe("", () => {
         methodInMixin(): string;
 
         test(): void;
+
+        sameNameMethod(): string;
     }
 
     const mixinA = mixinTyped<IMixinA>({
@@ -24,6 +26,9 @@ describe("", () => {
             return this.testA;
         },
         test() {
+        },
+        sameNameMethod(): string {
+            return 'from mixinA';
         },
     })(
         'mixinA',
@@ -42,6 +47,9 @@ describe("", () => {
         get test() {
             return 666;
         },
+        sameNameMethod(): string {
+            return 'from mixinB';
+        },
     });
 
     @use(mixinA, mixinB)
@@ -55,6 +63,10 @@ describe("", () => {
 
         methodInClassA() {
             return 'methodInClassA' + this.fieldInClassA;
+        }
+
+        sameNameMethod() {
+            return 'from classA';
         }
     }
     interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {}
@@ -83,6 +95,10 @@ describe("", () => {
         expect(temp.mixins.mixinB.methodB()).equal('test-b');
         expect(temp.testB).equal('test-b');
         expect(temp.mixins.mixinB.testB).equal('test-b');
+
+        expect(temp.sameNameMethod()).equal('from classA');
+        expect(temp.mixins.mixinA.sameNameMethod()).equal('from mixinA');
+        expect(temp.mixins.mixinB.sameNameMethod()).equal('from mixinB');
     });
 
 });
