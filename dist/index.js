@@ -1,5 +1,5 @@
 (function webpackUniversalModuleDefinition(root, factory) {
-    if (typeof exports === "object" && typeof module === "object") module.exports = factory(); else if (typeof define === "function" && define.amd) define([], factory); else if (typeof exports === "object") exports["typestyle"] = factory(); else root["typestyle"] = factory();
+    if (typeof exports === "object" && typeof module === "object") module.exports = factory(); else if (typeof define === "function" && define.amd) define([], factory); else if (typeof exports === "object") exports["ts-mix"] = factory(); else root["ts-mix"] = factory();
 })(window, function() {
     return function(modules) {
         var installedModules = {};
@@ -68,27 +68,112 @@
     }([ function(module, __webpack_exports__, __webpack_require__) {
         "use strict";
         __webpack_require__.r(__webpack_exports__);
-        __webpack_require__.d(__webpack_exports__, "mixinTyped", function() {
-            return mixinTyped;
+        function use(...mixins) {
+            return function(ctor) {
+                const newClass = new Proxy(ctor, {
+                    construct(target, args) {
+                        const result = Reflect.construct(target, args);
+                        result.mixins = {};
+                        for (const mixin of mixins) {
+                            const mixinName = mixin.mixinName;
+                            result.mixins[mixinName] = mixin;
+                            mixin.target = result;
+                            const mixables = getMixables(mixin);
+                            for (const propName of Object.keys(mixables)) {
+                                const propDescription = mixables[propName];
+                                if (!(propName in result)) {
+                                    if (typeof propDescription.value === "function") {
+                                        Reflect.defineProperty(result, propName, {
+                                            enumerable: false,
+                                            configurable: true,
+                                            writable: false,
+                                            value(...args) {
+                                                return mixin[propName](...args);
+                                            }
+                                        });
+                                    } else if (propDescription.get || propDescription.set) {
+                                        const attributes = {
+                                            enumerable: false,
+                                            configurable: true
+                                        };
+                                        if (propDescription.get) {
+                                            attributes.get = function() {
+                                                return mixin[propName];
+                                            };
+                                        }
+                                        if (propDescription.set) {
+                                            attributes.set = function(value) {
+                                                mixin[propName] = value;
+                                            };
+                                        }
+                                        Reflect.defineProperty(result, propName, attributes);
+                                    } else {
+                                        Reflect.defineProperty(result, propName, {
+                                            enumerable: false,
+                                            configurable: true,
+                                            get() {
+                                                return mixin[propName];
+                                            },
+                                            set(value) {
+                                                mixin[propName] = value;
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        for (const mixin of mixins) {
+                            mixin.init && mixin.init();
+                        }
+                        return result;
+                    }
+                });
+                return newClass;
+            };
+        }
+        function getMixables(obj) {
+            const map = {};
+            const propNames = Object.getOwnPropertyNames(obj).filter(i => i !== "init" && i !== "target" && i !== "mixinName");
+            for (const propName of propNames) {
+                const descriptor = Object.getOwnPropertyDescriptor(obj, propName);
+                if (descriptor === undefined) {
+                    continue;
+                }
+                map[propName] = descriptor;
+            }
+            return map;
+        }
+        function haveMixin(v, mixin) {
+            return typeof v === "object" && "mixins" in v && typeof v.mixins === "object" && mixin.mixinName in v.mixins && typeof v.mixins[mixin.mixinName] === "object";
+        }
+        function haveMixins(v, ...mixins) {
+            const baseCheck = typeof v === "object" && "mixins" in v && typeof v.mixins === "object";
+            if (!baseCheck) {
+                return false;
+            }
+            for (const mixin of mixins) {
+                if (haveMixin(v, mixin) === false) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        function mixin(config) {
+            return Object.assign({
+                target: undefined
+            }, config);
+        }
+        __webpack_require__.d(__webpack_exports__, "use", function() {
+            return use;
+        });
+        __webpack_require__.d(__webpack_exports__, "haveMixins", function() {
+            return haveMixins;
+        });
+        __webpack_require__.d(__webpack_exports__, "haveMixin", function() {
+            return haveMixin;
         });
         __webpack_require__.d(__webpack_exports__, "mixin", function() {
             return mixin;
         });
-        function mixinTyped(config) {
-            return (mixinName, init) => {
-                return Object.assign({
-                    mixinName: mixinName,
-                    target: undefined,
-                    init: init
-                }, config);
-            };
-        }
-        function mixin(mixinName, config, init) {
-            return Object.assign({
-                mixinName: mixinName,
-                target: undefined,
-                init: init
-            }, config);
-        }
     } ]);
 });

@@ -21,18 +21,24 @@ ts-mix is a simple, lightweight library for implementing a mixins pattern in a T
 ### Usage example
 
 ```typescript
+
+// mixin with outer interface
 interface IMixinA {
     propInMixin?: number;
     readonly testA: string;
-
     methodInMixin(): string;
-
     test(): void;
-
     sameNameMethod(): string;
 }
-// mixin implements some interface
-const mixinA = mixinTyped<IMixinA>({
+const mixinA = mixin<'mixinA', IMixinA>({
+    mixinName: 'mixinA',
+    
+    // method `init` with class constructor
+    init(this: Mixin<'mixinA', IMixinA>) {
+        const a = this.mixinName;
+        this.propInMixin = Math.random();
+    },
+
     get testA() {
         return 'test-a';
     },
@@ -44,15 +50,11 @@ const mixinA = mixinTyped<IMixinA>({
     sameNameMethod(): string {
         return 'from mixinA';
     },
-})(
-    'mixinA',
-    function(this: IMixinA) {
-        this.propInMixin = Math.random();
-    }
-);
+});
 
 //simple mixin
-const mixinB = mixin('mixinB', {
+const mixinB = mixin({
+    mixinName: 'mixinB',
     get testB() {
         return 'test-b';
     },
@@ -89,7 +91,7 @@ interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {}
 
 
 const instance = new ClassA(123);
-console.log(instance.methodInClassA()); // "methodInClassA - 123"
+console.log(instance.methodInClassA()); // "methodInClassA111"
 console.log(instance.methodB()); // "test-b" - method from mixinB
 console.log(instance.mixins.mixinB.methodB()); // "test-b" - method from mixinB
 console.log(instance.methodInMixin()); // "test-a" - method from mixinA
