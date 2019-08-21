@@ -68,68 +68,78 @@
     }([ function(module, __webpack_exports__, __webpack_require__) {
         "use strict";
         __webpack_require__.r(__webpack_exports__);
-        function use(...mixins) {
-            return function(ctor) {
-                const newClass = new Proxy(ctor, {
-                    construct(target, args) {
-                        const result = Reflect.construct(target, args);
-                        result.mixins = {};
-                        for (const mixin of mixins) {
-                            const mixinName = mixin.mixinName;
-                            result.mixins[mixinName] = mixin;
-                            mixin.target = result;
-                            const mixables = getMixables(mixin);
-                            for (const propName of Object.keys(mixables)) {
-                                const propDescription = mixables[propName];
-                                if (!(propName in result)) {
-                                    if (typeof propDescription.value === "function") {
-                                        Reflect.defineProperty(result, propName, {
-                                            enumerable: false,
-                                            configurable: true,
-                                            writable: false,
-                                            value(...args) {
-                                                return mixin[propName](...args);
-                                            }
-                                        });
-                                    } else if (propDescription.get || propDescription.set) {
-                                        const attributes = {
-                                            enumerable: false,
-                                            configurable: true
-                                        };
-                                        if (propDescription.get) {
-                                            attributes.get = function() {
-                                                return mixin[propName];
-                                            };
-                                        }
-                                        if (propDescription.set) {
-                                            attributes.set = function(value) {
-                                                mixin[propName] = value;
-                                            };
-                                        }
-                                        Reflect.defineProperty(result, propName, attributes);
-                                    } else {
-                                        Reflect.defineProperty(result, propName, {
-                                            enumerable: false,
-                                            configurable: true,
-                                            get() {
-                                                return mixin[propName];
-                                            },
-                                            set(value) {
-                                                mixin[propName] = value;
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                        for (const mixin of mixins) {
-                            mixin.init && mixin.init();
-                        }
-                        return result;
-                    }
-                });
-                return newClass;
+        function mixin(config) {
+            return Object.assign({
+                target: undefined
+            }, config);
+        }
+        function applyMixinsForClass(targetClass, ...mixins) {
+            return class extends targetClass {
+                constructor(...args) {
+                    super(...args);
+                    this.mixins = {};
+                    applyMixins(this, mixins);
+                }
             };
+        }
+        function applyMixinsForObject(target, ...mixins) {
+            const result = Object.assign({}, target);
+            applyMixins(result, mixins);
+            return result;
+        }
+        function applyMixins(target, mixins) {
+            target.mixins = {};
+            for (const mixin of mixins) {
+                const mixinName = mixin.mixinName;
+                target.mixins[mixinName] = mixin;
+                mixin.target = target;
+                const mixables = getMixables(mixin);
+                for (const propName of Object.keys(mixables)) {
+                    const propDescription = mixables[propName];
+                    if (!(propName in target)) {
+                        if (typeof propDescription.value === "function") {
+                            Reflect.defineProperty(target, propName, {
+                                enumerable: false,
+                                configurable: true,
+                                writable: false,
+                                value(...args) {
+                                    return mixin[propName](...args);
+                                }
+                            });
+                        } else if (propDescription.get || propDescription.set) {
+                            const attributes = {
+                                enumerable: false,
+                                configurable: true
+                            };
+                            if (propDescription.get) {
+                                attributes.get = function() {
+                                    return mixin[propName];
+                                };
+                            }
+                            if (propDescription.set) {
+                                attributes.set = function(value) {
+                                    mixin[propName] = value;
+                                };
+                            }
+                            Reflect.defineProperty(target, propName, attributes);
+                        } else {
+                            Reflect.defineProperty(target, propName, {
+                                enumerable: false,
+                                configurable: true,
+                                get() {
+                                    return mixin[propName];
+                                },
+                                set(value) {
+                                    mixin[propName] = value;
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+            for (const mixin of mixins) {
+                mixin.init && mixin.init();
+            }
         }
         function getMixables(obj) {
             const map = {};
@@ -142,6 +152,23 @@
                 map[propName] = descriptor;
             }
             return map;
+        }
+        function use(...mixins) {
+            return function(ctor) {
+                return applyMixinsForClass(ctor, ...mixins);
+            };
+        }
+        function useProxy(...mixins) {
+            return function(ctor) {
+                const newClass = new Proxy(ctor, {
+                    construct(target, args) {
+                        const result = Reflect.construct(target, args);
+                        applyMixins(result, mixins);
+                        return result;
+                    }
+                });
+                return newClass;
+            };
         }
         function haveMixin(v, mixin) {
             return typeof v === "object" && "mixins" in v && typeof v.mixins === "object" && mixin.mixinName in v.mixins && typeof v.mixins[mixin.mixinName] === "object";
@@ -158,13 +185,11 @@
             }
             return true;
         }
-        function mixin(config) {
-            return Object.assign({
-                target: undefined
-            }, config);
-        }
         __webpack_require__.d(__webpack_exports__, "use", function() {
             return use;
+        });
+        __webpack_require__.d(__webpack_exports__, "useProxy", function() {
+            return useProxy;
         });
         __webpack_require__.d(__webpack_exports__, "haveMixins", function() {
             return haveMixins;
@@ -174,6 +199,12 @@
         });
         __webpack_require__.d(__webpack_exports__, "mixin", function() {
             return mixin;
+        });
+        __webpack_require__.d(__webpack_exports__, "applyMixinsForObject", function() {
+            return applyMixinsForObject;
+        });
+        __webpack_require__.d(__webpack_exports__, "applyMixinsForClass", function() {
+            return applyMixinsForClass;
         });
     } ]);
 });

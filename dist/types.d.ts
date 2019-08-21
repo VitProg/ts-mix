@@ -1,5 +1,5 @@
 import { AnyObject, ArrayValues, MergeAll, UnionToIntersection } from "./common.types";
-interface IMixinBase<Name extends string> {
+export interface IMixinBase<Name extends string> {
     mixinName: Name;
     init?(): void;
     target: MixinTarget<IMixinBase<Name>>;

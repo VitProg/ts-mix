@@ -1,6 +1,7 @@
+/* tslint:disable:max-classes-per-file */
 import * as chai from 'chai';
-import {mixin} from "../mixin";
-import {use} from "../decorators";
+import {applyMixinsForClass, applyMixinsForObject, mixin} from "../mixin";
+import {use, useProxy} from "../decorators";
 import {IUseMixins, Mixin} from "../types";
 import {haveMixin, haveMixins} from "../type-guards";
 
@@ -68,9 +69,35 @@ describe("", () => {
             return 'from classA';
         }
     }
-
     interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {
     }
+
+    class ClassB extends ClassA {
+        hello() {
+            return 'hello';
+        }
+    }
+
+    @useProxy(mixinA, mixinB)
+    class ClassAProxy {
+        fieldInClassA = '111';
+        test: number;
+
+        constructor(val: number) {
+            this.test = val;
+        }
+
+        methodInClassA() {
+            return 'methodInClassA' + this.fieldInClassA;
+        }
+
+        sameNameMethod() {
+            return 'from classA';
+        }
+    }
+    interface ClassAProxy extends IUseMixins<[typeof mixinA, typeof mixinB]> {
+    }
+
 
     // @ts-ignore
     let temp: ClassA;
@@ -102,6 +129,28 @@ describe("", () => {
         expect(temp.mixins.mixinB.sameNameMethod()).equal('from mixinB');
     });
 
+    it("should be mixin proxy correct work", () => {
+        const test = new ClassAProxy(RND);
+
+        expect(test.mixins.mixinA.methodInMixin()).equal('test-a');
+        expect(test.methodInMixin()).equal('test-a');
+        expect(test.testA).equal('test-a');
+        expect(test.mixins.mixinA.testA).equal('test-a');
+        expect(test.fieldInClassA).equal('111');
+        expect(test.test).equal(RND);
+        expect(test.mixins.mixinA.test()).undefined;
+        expect(test.mixins.mixinB.test).equal(666);
+        expect(test.methodInClassA()).equal('methodInClassA111');
+        expect(test.methodB()).equal('test-b');
+        expect(test.mixins.mixinB.methodB()).equal('test-b');
+        expect(test.testB).equal('test-b');
+        expect(test.mixins.mixinB.testB).equal('test-b');
+
+        expect(temp.sameNameMethod()).equal('from classA');
+        expect(temp.mixins.mixinA.sameNameMethod()).equal('from mixinA');
+        expect(temp.mixins.mixinB.sameNameMethod()).equal('from mixinB');
+    });
+
     it("should be type guards correct work", () => {
         const mixinC = mixin({
             mixinName: 'mixinC',
@@ -117,6 +166,87 @@ describe("", () => {
         expect(haveMixins(temp, mixinA, mixinB, mixinC)).false;
     });
 
+    it('should work correctly when inheriting', () => {
+        const test = new ClassB(111);
+
+        expect(test.hello()).equal('hello');
+
+        expect(haveMixin(test, mixinA)).true;
+        expect(haveMixin(test, mixinB)).true;
+
+        expect(test.sameNameMethod()).equal('from classA');
+
+        expect(test.mixins.mixinA.methodInMixin()).equal('test-a');
+        expect(test.methodInMixin()).equal('test-a');
+        expect(test.testA).equal('test-a');
+        expect(test.mixins.mixinA.testA).equal('test-a');
+        expect(test.fieldInClassA).equal('111');
+        expect(test.test).equal(111);
+        expect(test.mixins.mixinA.test()).undefined;
+        expect(test.mixins.mixinB.test).equal(666);
+        expect(test.methodInClassA()).equal('methodInClassA111');
+        expect(test.methodB()).equal('test-b');
+        expect(test.mixins.mixinB.methodB()).equal('test-b');
+        expect(test.testB).equal('test-b');
+        expect(test.mixins.mixinB.testB).equal('test-b');
+    });
+
+    it('should work correctly simple, without decorators (applyMixinsForClass)', () => {
+        class Test {
+            test = 'test';
+        }
+
+        const classC = applyMixinsForClass(Test, mixinA, mixinB);
+        const test = new classC(111);
+
+        expect(haveMixin(test, mixinA)).true;
+        expect(haveMixin(test, mixinB)).true;
+
+        expect(test.sameNameMethod()).equal('from mixinA');
+
+        expect(test.mixins.mixinA.methodInMixin()).equal('test-a');
+        expect(test.methodInMixin()).equal('test-a');
+        expect(test.testA).equal('test-a');
+        expect(test.mixins.mixinA.testA).equal('test-a');
+        expect(test.test).equal('test');
+        expect(test.mixins.mixinA.test()).undefined;
+        expect(test.mixins.mixinB.test).equal(666);
+        expect(test.methodB()).equal('test-b');
+        expect(test.mixins.mixinB.methodB()).equal('test-b');
+        expect(test.testB).equal('test-b');
+        expect(test.mixins.mixinB.testB).equal('test-b');
+        expect(test.test).equal('test');
+    });
+
+    it('should work correctly simple, without decorators (applyMixinsForObject)', () => {
+        const testBase = {
+            test: 'abc',
+            m() {
+                return 'm';
+            },
+        };
+
+        const test = applyMixinsForObject(testBase, mixinA, mixinB);
+
+        expect(haveMixin(test, mixinA)).true;
+        expect(haveMixin(test, mixinB)).true;
+
+        expect(test.sameNameMethod()).equal('from mixinA');
+
+        expect(test.mixins.mixinA.methodInMixin()).equal('test-a');
+        expect(test.methodInMixin()).equal('test-a');
+        expect(test.testA).equal('test-a');
+        expect(test.mixins.mixinA.testA).equal('test-a');
+        expect(test.test).equal('abc');
+        expect(test.m()).equal('m');
+        expect(test.mixins.mixinA.test()).undefined;
+        expect(test.mixins.mixinB.test).equal(666);
+        expect(test.methodB()).equal('test-b');
+        expect(test.mixins.mixinB.methodB()).equal('test-b');
+        expect(test.testB).equal('test-b');
+        expect(test.mixins.mixinB.testB).equal('test-b');
+    });
+
     it('from readme.md', () => {
         const instance = new ClassA(123);
         expect(instance.methodInClassA()).equal('methodInClassA111');
@@ -124,5 +254,6 @@ describe("", () => {
         expect(instance.mixins.mixinB.methodB()).equal('test-b');
         expect(instance.methodInMixin()).equal('test-a');
     });
+
 
 });
