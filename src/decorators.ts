@@ -9,7 +9,7 @@ export function use<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: M
 }
 
 export function useProxy<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins) {
-    return function<T extends Constructor<AnyObject>>(this: unknown, ctor: T) {
+    return function<T extends Constructor<AnyObject>>(this: unknown, ctor: T): T {
         // noinspection UnnecessaryLocalVariableJS
         const newClass = new Proxy(ctor, {
             construct(target: T, args: any) {

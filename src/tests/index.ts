@@ -57,6 +57,8 @@ describe("", () => {
         fieldInClassA = '111';
         test: number;
 
+        static staticProp = 'test static';
+
         constructor(val: number) {
             this.test = val;
         }
@@ -110,6 +112,7 @@ describe("", () => {
 
 
     it("should be mixin correct work", () => {
+        expect(ClassA.staticProp).equal('test static');
         expect(temp.mixins.mixinA.methodInMixin()).equal('test-a');
         expect(temp.methodInMixin()).equal('test-a');
         expect(temp.testA).equal('test-a');

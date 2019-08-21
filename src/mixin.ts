@@ -13,7 +13,7 @@ export function mixin<Name extends string, Config extends AnyObject>(
 
 export function applyMixinsForClass<Mixins extends Array<Mixin<string, AnyObject>>, T extends Constructor<AnyObject>>(
     targetClass: T, ...mixins: Mixins
-): Constructor<InstanceType<T> & IUseMixins<Mixins>> {
+): Constructor<InstanceType<T> & IUseMixins<Mixins>> & T {
     return class extends targetClass {
         mixins = {};
 
