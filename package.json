@@ -1,6 +1,6 @@
 {
   "name": "ts-mix",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Yet another library for the implementation of mixins in TypeScript...",
   "repository": "https://github.com/VitProg/ts-mix",
   "main": "dist/index.js",
