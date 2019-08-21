@@ -151,21 +151,6 @@ describe("", () => {
         expect(temp.mixins.mixinB.sameNameMethod()).equal('from mixinB');
     });
 
-    it("should be type guards correct work", () => {
-        const mixinC = mixin({
-            mixinName: 'mixinC',
-            methodC() {
-                return 'methodC';
-            },
-        });
-        expect(haveMixin(temp, mixinA)).true;
-        expect(haveMixin(temp, mixinB)).true;
-        expect(haveMixin(temp, mixinC)).false;
-        expect(haveMixins(temp, mixinA)).true;
-        expect(haveMixins(temp, mixinA, mixinB)).true;
-        expect(haveMixins(temp, mixinA, mixinB, mixinC)).false;
-    });
-
     it('should work correctly when inheriting', () => {
         const test = new ClassB(111);
 
@@ -197,7 +182,7 @@ describe("", () => {
         }
 
         const classC = applyMixinsForClass(Test, mixinA, mixinB);
-        const test = new classC(111);
+        const test = new classC();
 
         expect(haveMixin(test, mixinA)).true;
         expect(haveMixin(test, mixinB)).true;
@@ -245,6 +230,25 @@ describe("", () => {
         expect(test.mixins.mixinB.methodB()).equal('test-b');
         expect(test.testB).equal('test-b');
         expect(test.mixins.mixinB.testB).equal('test-b');
+    });
+
+    it("should be type guards correct work", () => {
+        const mixinC = mixin({
+            mixinName: 'mixinC',
+            methodC() {
+                return 'methodC';
+            },
+        }) as any;
+        expect(haveMixin(temp, mixinA)).true;
+        expect(haveMixin(temp, mixinB)).true;
+        expect(haveMixin(temp, mixinC)).false;
+        expect(haveMixins(temp, mixinA)).true;
+        expect(haveMixins(temp, mixinA, mixinB)).true;
+        expect(haveMixins(temp, mixinA, mixinB, mixinC)).false;
+
+        if (haveMixin(temp, mixinA)) {
+            expect(temp.methodInMixin()).equal('test-a');
+        }
     });
 
     it('from readme.md', () => {

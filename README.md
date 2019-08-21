@@ -110,6 +110,64 @@ console.log(instance.mixins.mixinB.sameNameMethod()); // "from mixinB"
 ```
 
 
+### Use without decorators:
+- for Class:
+```typescript
+class Test {
+    test = 'test';
+}
+
+const classC = applyMixinsForClass(Test, mixinA, mixinB);
+const instance = new classC();
+console.log(instance.test); // "test" - method class Test
+console.log(instance.methodB()); // "test-b" - method from mixinB
+console.log(instance.mixins.mixinB.methodB()); // "test-b" - method from mixinB
+console.log(instance.methodInMixin()); // "test-a" - method from mixinA
+```
+
+- for Object:
+```typescript
+const testBase = {
+    test: 'abc',
+    m() {
+        return 'm';
+    },
+};
+
+const instance = applyMixinsForObject(testBase, mixinA, mixinB);
+console.log(instance.test); // "abc" - method object testBase
+console.log(instance.m()); // "m" - method object testBase
+console.log(instance.methodB()); // "test-b" - method from mixinB
+console.log(instance.mixins.mixinB.methodB()); // "test-b" - method from mixinB
+console.log(instance.methodInMixin()); // "test-a" - method from mixinA
+```
+
+### TypeGuards methods
+- haveMixin(obj, mixin) - check is object used some mixin
+- haveMixins(obj, mixinA, mixinB,...) - check is object used all mixins
+
+Example:
+```typescript
+const mixinC = mixin({
+    mixinName: 'mixinC',
+});
+
+@use(mixinA, mixinB) // connects mixins to the class
+class ClassA {
+    // some methods and properties
+}
+
+
+const instance = new ClassA();
+console.log(haveMixin(temp, mixinA)); // true
+console.log(haveMixin(temp, mixinB)); // true
+console.log(haveMixin(temp, mixinC)); // false
+
+console.log(haveMixins(temp, mixinA, mixinB)); // true
+console.log(haveMixins(temp, mixinA, mixinB, mixinC)); // false
+```
+
+
 ## NPM Scripts
 
 - ``npm run build`` - build development version
