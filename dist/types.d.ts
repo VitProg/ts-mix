@@ -4,7 +4,11 @@ export interface IMixinBase<Name extends string> {
     init?(): void;
     target: MixinTarget<IMixinBase<Name>>;
 }
-export declare type Mixin<Name extends string, Config extends AnyObject> = IMixinBase<Name> & Config;
+export declare type Mixin<Name extends string, Config extends AnyObject> = Config & IMixinBase<Name>;
+export declare type MixinFull<Name extends string, Config extends AnyObject> = Omit<IMixinBase<Name>, 'target'> & Config & {
+    target: AnyObject & IUseMixins<[Mixin<Name, Config>]>;
+};
+export declare type MixinThis<Config extends AnyObject> = MixinFull<any, Config>;
 declare type MakeMixinItem<X> = X extends IMixinBase<infer Name> ? Record<Name, X> : never;
 export declare type MixinsProp<items extends Array<Mixin<any, any>>> = UnionToIntersection<ArrayValues<{
     [i in keyof items]: MakeMixinItem<items[i]>;

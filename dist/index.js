@@ -77,7 +77,6 @@
             return class extends targetClass {
                 constructor(...args) {
                     super(...args);
-                    this.mixins = {};
                     applyMixins(this, mixins);
                 }
             };
@@ -88,7 +87,9 @@
             return result;
         }
         function applyMixins(target, mixins) {
-            target.mixins = {};
+            if (typeof target.mixins !== "object") {
+                target.mixins = {};
+            }
             for (const mixin of mixins) {
                 const mixinName = mixin.mixinName;
                 target.mixins[mixinName] = mixin;
@@ -184,6 +185,9 @@
                 }
             }
             return true;
+        }
+        function isMixin(value) {
+            return typeof value === "object" && "mixinName" in value && "target" in value;
         }
         __webpack_require__.d(__webpack_exports__, "use", function() {
             return use;
