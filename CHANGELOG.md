@@ -1,3 +1,8 @@
+#### v0.2.1
+- fix - incorrect types inferred if mixin config contain init method
+- fix - use some mixins for child class, if parent class already using other mixins
+- isMixin - new type guard
+
 #### v0.2.0
 - @use - now uses class inheritance
 - @useProxy - using (Proxy) (previously @use also worked).

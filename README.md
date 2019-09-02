@@ -4,7 +4,6 @@ Yet another library for implementing mixins in TypeScript.
 
 * Typescript
 * ES7 Decorator
-* ES7 Proxy
 * ```"experimentalDecorators": true,``` in tsconfig.json
 
 
@@ -30,13 +29,16 @@ interface IMixinA {
     test(): void;
     sameNameMethod(): string;
 }
-const mixinA = mixin<'mixinA', IMixinA>({
+const mixinAName = 'mixinA' as const;
+const mixinA = mixin<typeof mixinAName, IMixinA>({
     mixinName: 'mixinA',
     
-    // method `init` with class constructor
-    init(this: Mixin<'mixinA', IMixinA>) {
+    // method `init` run with class constructor
+    init(this: MixinFull<typeof mixinAName, IMixinA>) {
         const a = this.mixinName;
-        this.propInMixin = Math.random();
+        this.propInMixin = 123;
+        console.log(this.target.propInMixin); // '123'
+        console.log(this.target.mixins.mixinA.propInMixin); // '123'
     },
 
     get testA() {
@@ -77,6 +79,7 @@ class ClassA {
 
     constructor(val: number) {
         this.test = val;
+        // (!) in constructor mixins is not yet initialized
     }
 
     methodInClassA() {
@@ -87,19 +90,33 @@ class ClassA {
         return 'from classA';
     }
 }
+/// for intellisense
 interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {}
-
 
 const instance = new ClassA(123);
 console.log(instance.methodInClassA()); // "methodInClassA111"
 console.log(instance.methodB()); // "test-b" - method from mixinB
 console.log(instance.mixins.mixinB.methodB()); // "test-b" - method from mixinB
 console.log(instance.methodInMixin()); // "test-a" - method from mixinA
+
+
+
+
+@useProxy(mixinB) // connects mixins to the class. (!) use ES7 Proxy
+class ClassB {
+    //
+}
+
+const instanceB = new ClassB();
+console.log(instance.methodB()); // "test-b" - method from mixinB
+console.log(instance.mixins.mixinB.methodB()); // "test-b" - method from mixinB
 ```
 
 
 
+Mixins are used in the following order.
 Class extended only by methods and properties of mixins it does not have.
+
 
 All methods of all mixins can be found in ``this.mixins.`` by mixin name.
 
@@ -145,6 +162,7 @@ console.log(instance.methodInMixin()); // "test-a" - method from mixinA
 ### TypeGuards methods
 - haveMixin(obj, mixin) - check is object used some mixin
 - haveMixins(obj, mixinA, mixinB,...) - check is object used all mixins
+- isMixin<Mixin>(value) - check is value is any Mixin or concrete Mixin from generic
 
 Example:
 ```typescript
@@ -167,6 +185,9 @@ console.log(haveMixins(temp, mixinA, mixinB)); // true
 console.log(haveMixins(temp, mixinA, mixinB, mixinC)); // false
 ```
 
+## Limitations
+- Due to problems with recursive types, there are limits on the number of mixins passed to @IUseMixins - a maximum of 6 mixins. For all that more than 6 it will not work intellisense IDE
+- When inheriting, if using new mixins, you cannot be applied to child class syntax ```interface ClassB extends IUseMixins<[typeof mixinC]>{}```. You can use the type guard method ```haveMixin(this, mixinC)```
 
 ## NPM Scripts
 
@@ -182,6 +203,6 @@ Once you have something you'd like to contribute, be sure to run ``npm test`` lo
 
 ## Author
 
-Viktor (aka VitProg) - vitprog@gmail.com
+Viktor (VitProg) - vitprog@gmail.com
 
 My github - https://github.com/VitProg

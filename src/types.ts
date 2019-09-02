@@ -8,7 +8,9 @@ export interface IMixinBase<Name extends string> {
 }
 
 
-export type Mixin<Name extends string, Config extends AnyObject> = IMixinBase<Name> & Config;
+export type Mixin<Name extends string, Config extends AnyObject> = Config & IMixinBase<Name>;
+export type MixinFull<Name extends string, Config extends AnyObject> = Omit<IMixinBase<Name>, 'target'> & Config & {target: AnyObject & IUseMixins<[Mixin<Name, Config>]>};
+export type MixinThis<Config extends AnyObject> = MixinFull<any, Config>;
 
 type MakeMixinItem<X> =
     X extends IMixinBase<infer Name>

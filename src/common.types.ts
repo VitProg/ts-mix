@@ -24,7 +24,7 @@ export type MergeOmit<A, B> = Omit<A, keyof B> & B;
 //         : never;
 
 /**
- * warning! length limit - 7 !!!
+ * warning! length limit - 6 !!!
  */
 export type MergeAll<Arr extends any[]> = ((...a: Arr) => 0) extends ((x: infer X, ...xs: infer Xs) => 0) ? (Xs extends any[] ? MergeOmit<X, depth1<Xs>> : X) : never;
 type depth1<Arr extends any[]> = ((...a: Arr) => 0) extends ((x: infer X, ...xs: infer Xs) => 0) ? (Xs extends any[] ? MergeOmit<X, depth2<Xs>> : X) : never;

@@ -2,8 +2,8 @@
 import * as chai from 'chai';
 import {applyMixinsForClass, applyMixinsForObject, mixin} from "../mixin";
 import {use, useProxy} from "../decorators";
-import {IUseMixins, Mixin} from "../types";
-import {haveMixin, haveMixins} from "../type-guards";
+import {IUseMixins, MixinFull} from "../types";
+import {haveMixin, haveMixins, isMixin} from "../type-guards";
 
 const expect = chai.expect;
 
@@ -13,15 +13,23 @@ describe("", () => {
     interface IMixinA {
         propInMixin?: number;
         readonly testA: string;
+
         methodInMixin(): string;
+
         test(): void;
+
         sameNameMethod(): string;
     }
-    const mixinA = mixin<'mixinA', IMixinA>({
-        mixinName: 'mixinA',
-        init(this: Mixin<'mixinA', IMixinA>) {
+
+    const mixinAName = 'mixinA' as const;
+    const mixinA = mixin<typeof mixinAName, IMixinA>({
+        mixinName: mixinAName,
+        propInMixin: undefined,
+        init(this: MixinFull<typeof mixinAName, IMixinA>) {
             const a = this.mixinName;
-            this.propInMixin = Math.random();
+            this.propInMixin = 123;
+            expect(this.target.propInMixin).to.equal(123);
+            expect(this.target.mixins.mixinA.propInMixin).to.equal(123);
         },
         get testA() {
             return 'test-a';
@@ -37,7 +45,7 @@ describe("", () => {
     });
 
     const mixinB = mixin({
-        mixinName: 'mixinB',
+        mixinName: 'mixinB' as const,
         get testB() {
             return 'test-b';
         },
@@ -50,7 +58,17 @@ describe("", () => {
         sameNameMethod(): string {
             return 'from mixinB';
         },
+        init() {/***/
+        },
     });
+
+    const mixinC = mixin({
+        mixinName: 'mixinC',
+        methodC() {
+            return 'methodC';
+        },
+    });
+
 
     @use(mixinA, mixinB)
     class ClassA {
@@ -64,6 +82,10 @@ describe("", () => {
         }
 
         methodInClassA() {
+            expect(this.propInMixin).to.equal(123);
+            expect(this.mixins.mixinA.propInMixin).to.equal(123);
+            expect(this.test).to.not.equal(666);
+            expect(this.mixins.mixinB.test).to.equal(666);
             return 'methodInClassA' + this.fieldInClassA;
         }
 
@@ -71,14 +93,18 @@ describe("", () => {
             return 'from classA';
         }
     }
-    interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {
-    }
+    interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {}
 
+
+    @use(mixinC)
     class ClassB extends ClassA {
         hello() {
             return 'hello';
         }
     }
+    // todo, not implemented for the classes to be inherited (((
+    // interface ClassB extends IUseMixins<[typeof mixinC]> {}
+
 
     @useProxy(mixinA, mixinB)
     class ClassAProxy {
@@ -97,8 +123,7 @@ describe("", () => {
             return 'from classA';
         }
     }
-    interface ClassAProxy extends IUseMixins<[typeof mixinA, typeof mixinB]> {
-    }
+    interface ClassAProxy extends IUseMixins<[typeof mixinA, typeof mixinB]> {}
 
 
     // @ts-ignore
@@ -156,6 +181,11 @@ describe("", () => {
 
     it('should work correctly when inheriting', () => {
         const test = new ClassB(111);
+
+        if (haveMixin(test, mixinC)) {
+            expect(test.methodC()).equal('methodC');
+            expect(test.mixins.mixinC.methodC()).equal('methodC');
+        }
 
         expect(test.hello()).equal('hello');
 
@@ -236,12 +266,6 @@ describe("", () => {
     });
 
     it("should be type guards correct work", () => {
-        const mixinC = mixin({
-            mixinName: 'mixinC',
-            methodC() {
-                return 'methodC';
-            },
-        }) as any;
         expect(haveMixin(temp, mixinA)).true;
         expect(haveMixin(temp, mixinB)).true;
         expect(haveMixin(temp, mixinC)).false;
@@ -251,6 +275,20 @@ describe("", () => {
 
         if (haveMixin(temp, mixinA)) {
             expect(temp.methodInMixin()).equal('test-a');
+        }
+
+        const testGuard: unknown = temp.mixins.mixinB;
+
+        expect(isMixin(testGuard)).true;
+        expect(isMixin(temp)).false;
+
+        if (isMixin(testGuard)) {
+            expect(testGuard.mixinName).to.equal('mixinB');
+        }
+
+        if (isMixin<typeof mixinB>(testGuard)) {
+            expect(testGuard.mixinName).to.equal('mixinB');
+            expect(testGuard.testB).to.equal('test-b');
         }
     });
 

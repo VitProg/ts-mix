@@ -1,10 +1,10 @@
-import {IUseMixins, Mixin} from "./types";
+import {IMixinBase, IUseMixins, Mixin, MixinFull, MixinTarget} from "./types";
 import {AnyObject, Constructor} from "./common.types";
 
 
 export function mixin<Name extends string, Config extends AnyObject>(
-    config: Config & { mixinName: Name, init?: (this: Mixin<Name, Config>) => void }
-): Mixin<Name, Config> {
+    config: Config & { mixinName: Name, init?: () => void }
+): MixinFull<Name, Config> {
     return {
         target: undefined as any,
         ...config,
@@ -15,8 +15,6 @@ export function applyMixinsForClass<Mixins extends Array<Mixin<string, AnyObject
     targetClass: T, ...mixins: Mixins
 ): Constructor<InstanceType<T> & IUseMixins<Mixins>> & T {
     return class extends targetClass {
-        mixins = {};
-
         constructor(...args: any[]) {
             super(...args);
 
@@ -37,7 +35,9 @@ export function applyMixinsForObject<T extends AnyObject, Mixins extends Array<M
 export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<string, AnyObject>>>(
     target: T, mixins: Mixins
 ): void {
-    (target.mixins as AnyObject) = {};
+    if (typeof target.mixins !== 'object') {
+        (target.mixins as AnyObject) = {};
+    }
 
     for (const mixin of mixins) {
         const mixinName = mixin.mixinName;
