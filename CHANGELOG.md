@@ -1,3 +1,6 @@
+#### v0.2.3
+- fix - main exports (MixinFull, MixinThis and IMixinBase types)
+
 #### v0.2.2
 - fix - incorrect types inferred if mixin config contain init method
 - fix - use some mixins for child class, if parent class already using other mixins
