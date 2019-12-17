@@ -1,3 +1,6 @@
+#### v0.2.5
+- Improve building process
+
 #### v0.2.4
 - Improve the syntax for creating a mixin
 
