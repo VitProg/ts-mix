@@ -7,6 +7,9 @@
 ./node_modules/**/*.*
 
 # Content generated on build
+tmp/
+tmp/**/*.*
+tmp/*.*
 test/
 test/**/*.*
 lib/**/*.js
