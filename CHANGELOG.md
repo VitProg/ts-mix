@@ -1,3 +1,6 @@
+#### v0.2.4
+- Improve the syntax for creating a mixin
+
 #### v0.2.3
 - fix - main exports (MixinFull, MixinThis and IMixinBase types)
 

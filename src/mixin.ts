@@ -1,13 +1,22 @@
-import {IMixinBase, IUseMixins, Mixin, MixinFull, MixinTarget} from "./types";
+import {IUseMixins, Mixin, MixinFull, mixinsAfterInit} from "./types";
 import {AnyObject, Constructor} from "./common.types";
 
+type ConfigComplex<Name extends string, Config extends AnyObject, PartialKeys extends Array<keyof Config> = []>
+    = PartialBy<Config, OR<PartialKeys>> &
+    { mixinName: Name, init?: () => void} &
+    (OR<PartialKeys> extends never ? {} : {setup: () => Required<Pick<Config, OR<PartialKeys>>>});
 
-export function mixin<Name extends string, Config extends AnyObject>(
-    config: Config & { mixinName: Name, init?: () => void }
+type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+type OR<T extends ReadonlyArray<any>> = T[number];
+
+export function mixin<Name extends string, Config extends AnyObject, PartialKeys extends Array<keyof Config> = []>(
+    config: (Config | ConfigComplex<Name, Config, PartialKeys>) & ThisType<MixinFull<Name, Config>>
 ): MixinFull<Name, Config> {
+    const cfg: ConfigComplex<Name, Config> = config as any;
     return {
         target: undefined as any,
-        ...config,
+        ...cfg,
     };
 }
 
@@ -43,6 +52,15 @@ export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<stri
         const mixinName = mixin.mixinName;
         (target.mixins as AnyObject)[mixinName] = mixin;
         mixin.target = target as any;
+
+        if ('setup' in mixin && typeof mixin.setup === 'function') {
+            const setupResult = mixin.setup();
+            if (typeof setupResult !== 'undefined') {
+                for (const [key, value] of Object.entries(setupResult)) {
+                    mixin[key] = value;
+                }
+            }
+        }
 
         const mixables = getMixables(mixin);
 
@@ -93,6 +111,10 @@ export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<stri
 
     for (const mixin of mixins) {
         mixin.init && mixin.init();
+    }
+
+    if (mixinsAfterInit in target && typeof target[mixinsAfterInit] === 'function') {
+        target[mixinsAfterInit]();
     }
 
     // return target;

@@ -4,6 +4,7 @@ import {AnyObject, ArrayValues, MergeAll, MergeOmit, UnionToIntersection} from "
 export interface IMixinBase<Name extends string> {
     mixinName: Name;
     init?(): void;
+    setup?(): AnyObject; // todo
     target: MixinTarget<IMixinBase<Name>>;
 }
 
@@ -67,10 +68,16 @@ export type MixinsProp<items extends Array<Mixin<any, any>>> =
 //             Last & Record<Name, M> : Last : never;
 
 
-type ClearMixin<M extends Mixin<any, any>> = Omit<M, 'mixinName' | 'target' | 'init'>;
+export type ClearMixin<M extends Mixin<any, any>> = Omit<M, 'mixinName' | 'target' | 'init' | 'setup'>;
 export type IUseMixins<Mixins extends Array<Mixin<any, any>>> = ClearMixin<MergeAll<Mixins>> & {mixins: MixinsProp<Mixins>};
 
 export type MixinTarget<M extends Mixin<any, any> = never> = AnyObject & IUseMixins<M extends Mixin<any, any> ? [M] : []>;
 export type WithMixin<M extends Mixin<any, any>> = IUseMixins<[M]>;
+
+export const mixinsAfterInit = '__afterMixins';
+
+export interface IMixinAfterInitHandler {
+    [mixinsAfterInit]: () => void;
+}
 
 

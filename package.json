@@ -2,7 +2,10 @@
   "name": "ts-mix",
   "version": "0.2.3",
   "description": "Yet another library for the implementation of mixins in TypeScript...",
-  "repository": "https://github.com/VitProg/ts-mix",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VitProg/ts-mix.git"
+  },
   "main": "dist/index.js",
   "jsnext:main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,9 +15,18 @@
     "build-prod": "webpack --production",
     "compile": "tsc -p tsconfig.es2015.json",
     "test": "npm run compile && mocha ./test/tests/**/*.js",
+    "clean": "rm ./dist -rf && rm ./lib -rf; rm ./test -rf;",
     "preversion": "npm run test && npm run build-prod",
-    "postversion": "git add dist/ && git commit -m '- publish new version' && git push --follow-tags && npm publish"
+    "postversion": "git add dist/ && git commit -m '- publish new version' && git push --follow-tags && npm publish",
+    "pass": "echo 'it passes'"
   },
+  "pre-commit": "pass",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
@@ -30,7 +42,7 @@
     "ts-node": "^8.3.0",
     "tslib": "^1.10.0",
     "tslint": "^5.18.0",
-    "typescript": "^3.5.2",
+    "typescript": "^3.7.3",
     "uglifyjs-webpack-plugin": "^2.1.3",
     "webpack": "^4.35.2",
     "webpack-cli": "^3.3.5"

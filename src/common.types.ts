@@ -11,10 +11,10 @@ export type UnionToIntersection<Union> =
 
 
 export type MergeOmit<A, B> = Omit<A, keyof B> & B;
-// export type MergeAll<Arr extends any[]> = {
+// export type MergeAllAdvanced<Arr extends any[]> = {
 //     empty: {},
 //     cons: ((...args: Arr) => any) extends ((x: infer X, ...xs: infer Xs) => any)
-//         ? Merge<X, MergeAll<Xs>>
+//         ? MergeOmit<X, MergeAllAdvanced<Xs>>
 //         : never,
 // }[Arr extends [] ? {} : 'cons'];
 

@@ -2,7 +2,7 @@
 import * as chai from 'chai';
 import {applyMixinsForClass, applyMixinsForObject, mixin} from "../mixin";
 import {use, useProxy} from "../decorators";
-import {IUseMixins, MixinFull} from "../types";
+import {IMixinAfterInitHandler, IUseMixins, MixinFull, mixinsAfterInit} from "../types";
 import {haveMixin, haveMixins, isMixin} from "../type-guards";
 
 const expect = chai.expect;
@@ -11,8 +11,9 @@ const expect = chai.expect;
 describe("", () => {
 
     interface IMixinA {
-        propInMixin?: number;
+        propInMixin: number;
         readonly testA: string;
+        readonly initInSetup: Date;
 
         methodInMixin(): string;
 
@@ -22,15 +23,24 @@ describe("", () => {
     }
 
     const mixinAName = 'mixinA' as const;
-    const mixinA = mixin<typeof mixinAName, IMixinA>({
+    const mixinA = mixin<typeof mixinAName, IMixinA, ['initInSetup', 'propInMixin']>({
         mixinName: mixinAName,
-        propInMixin: undefined,
+
+        setup() {
+            return {
+                propInMixin: 123111,
+                initInSetup: new Date(),
+            };
+        },
+
         init(this: MixinFull<typeof mixinAName, IMixinA>) {
-            const a = this.mixinName;
+            expect(this.target.propInMixin).to.equal(123111);
+            expect(this.target.mixins.mixinA.propInMixin).to.equal(123111);
             this.propInMixin = 123;
             expect(this.target.propInMixin).to.equal(123);
             expect(this.target.mixins.mixinA.propInMixin).to.equal(123);
         },
+
         get testA() {
             return 'test-a';
         },
@@ -38,6 +48,8 @@ describe("", () => {
             return this.testA;
         },
         test() {
+            expect(this.target.propInMixin).to.equal(123);
+            expect(this.target.mixins.mixinA.propInMixin).to.equal(123);
         },
         sameNameMethod(): string {
             return 'from mixinA';
@@ -71,7 +83,8 @@ describe("", () => {
 
 
     @use(mixinA, mixinB)
-    class ClassA {
+    class ClassA implements IMixinAfterInitHandler {
+
         fieldInClassA = '111';
         test: number;
 
@@ -79,6 +92,15 @@ describe("", () => {
 
         constructor(val: number) {
             this.test = val;
+        }
+
+        [mixinsAfterInit]() {
+            expect(this.mixins.mixinA.initInSetup).not.undefined;
+            // noinspection SuspiciousTypeOfGuard
+            expect(this.mixins.mixinA.initInSetup instanceof Date).true;
+            expect(this.initInSetup).not.undefined;
+            // noinspection SuspiciousTypeOfGuard
+            expect(this.initInSetup instanceof Date).true;
         }
 
         methodInClassA() {
@@ -155,6 +177,12 @@ describe("", () => {
         expect(temp.sameNameMethod()).equal('from classA');
         expect(temp.mixins.mixinA.sameNameMethod()).equal('from mixinA');
         expect(temp.mixins.mixinB.sameNameMethod()).equal('from mixinB');
+
+        expect(temp.initInSetup).not.undefined;
+        // noinspection SuspiciousTypeOfGuard
+        expect(temp.initInSetup instanceof Date).true;
+
+        // expect(temp.)
     });
 
     it("should be mixin proxy correct work", () => {
