@@ -1,14 +1,11 @@
 {
   "extends": "./tsconfig",
   "compilerOptions": {
-    "outFile": "./dist/index.js",
-    "module": "AMD",
-    "moduleResolution": "Classic",
-    "declaration": true,
-    "sourceMap": false
+    "outDir": "./dist",
+    "declaration": true
   },
   "exclude": [
-    "./src/tests",
-    "./node_modules"
+    "./node_modules",
+    "./src/tests"
   ]
 }

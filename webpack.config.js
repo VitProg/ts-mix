@@ -3,6 +3,8 @@ const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
+const libraryName = 'ts-mix';
+
 const isProd = process.argv.includes('--production');
 const isWatch = process.argv.includes('--watch');
 
@@ -12,7 +14,7 @@ module.exports = [
         mode: isProd ? 'production' : 'development',
         target: 'web',
         entry: {
-            'ts-mix': path.resolve(__dirname, 'src', 'index.ts'),
+            [libraryName]: path.resolve(__dirname, 'src', 'index.ts'),
         },
         output: {
             pathinfo: false,
@@ -20,16 +22,21 @@ module.exports = [
             path: path.resolve(__dirname, isProd ? 'dist' : 'test'),
             publicPath: '/',
             libraryTarget: 'umd',
-            library: 'ts-mix',
+            library: libraryName,
+            umdNamedDefine: true,
         },
         resolve: {
             extensions: ['.ts', '.js'],
         },
-        plugins: isProd ? [] : [
-            new CopyPlugin([
-                'src/index.html',
-            ]),
-        ],
+        plugins: isProd ?
+            [
+                //
+            ] :
+            [
+                new CopyPlugin([
+                    'src/index.html',
+                ]),
+            ],
         module: {
             rules: [
                 {
