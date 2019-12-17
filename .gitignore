@@ -2,6 +2,10 @@
 .vscode
 .idea
 
+./node_modules
+./node_modules/*.*
+./node_modules/**/*.*
+
 # Content generated on build
 test/
 test/**/*.*

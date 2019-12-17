@@ -16,11 +16,9 @@
     "compile": "tsc -p tsconfig.es2015.json",
     "test": "npm run compile && mocha ./test/tests/**/*.js",
     "clean": "rm ./dist -rf && rm ./lib -rf; rm ./test -rf;",
-    "preversion": "npm run test && npm run build-prod",
-    "postversion": "git add dist/ && git commit -m '- publish new version' && git push --follow-tags && npm publish",
-    "pass": "echo 'it passes'"
+    "preversion": "npm run test && npm run build-prod && rm ./test -rf",
+    "postversion": "git add dist/ && git commit -m '- publish new version' && git push --follow-tags && npm publish"
   },
-  "pre-commit": "pass",
   "files": [
     "dist",
     "README.md",
