@@ -3,7 +3,7 @@ import {AnyObject, Constructor} from "./common.types";
 import {applyMixinsForClass, applyMixins} from "./mixin";
 
 export function use<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins) {
-    return function<T extends Constructor<AnyObject>>(this: unknown, ctor: T) {
+    return function<T extends Constructor<AnyObject>>(this: unknown, ctor: T): T {
         return applyMixinsForClass(ctor, ...mixins);
     };
 }

@@ -33,9 +33,7 @@ declare type IUseMixins<Mixins extends Array<Mixin<any, any>>> = ClearMixin<Merg
 declare type MixinTarget<M extends Mixin<any, any> = never> = AnyObject & IUseMixins<M extends Mixin<any, any> ? [M] : []>;
 declare type WithMixin<M extends Mixin<any, any>> = IUseMixins<[M]>;
 
-declare function use<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins): <T extends Constructor<Record<string, any>>>(this: unknown, ctor: T) => Constructor<InstanceType<T> & Pick<MergeAll<Mixins>, Exclude<keyof MergeAll<Mixins>, "mixinName" | "target" | "init" | "setup">> & {
-    mixins: UnionToIntersection<{ [i in keyof Mixins]: Mixins[i] extends import("./types").IMixinBase<infer Name> ? Record<Name, Mixins[i]> : never; }[number]>;
-}> & T;
+declare function use<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins): <T extends Constructor<Record<string, any>>>(this: unknown, ctor: T) => T;
 declare function useProxy<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins): <T extends Constructor<Record<string, any>>>(this: unknown, ctor: T) => T;
 
 declare function haveMixin<M extends Mixin<any, any>>(v: any, mixin: M): v is WithMixin<M>;
