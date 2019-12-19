@@ -59,35 +59,24 @@ export type RewriteConstructorResult<T extends new (...args: any) => any, N> = {
     '_': new (...args: CP<T>) => InstanceType<T> & N,
 }[N.Greater<L.Length<CP<T>>, '5'> extends '4' ? '_' : L.Length<CP<T>>];
 
-export type RewriteConstructorResult2<T extends new (...args: any) => any, N extends InstanceType<T>> = {
-    0: new () => N,
-    1: new (arg1: CPN<T, 0>) => N,
-    2: new (arg1: CPN<T, 0>, arg2: CPN<T, 1>) => N,
-    3: new (arg1: CPN<T, 0>, arg2: CPN<T, 1>, arg3: CPN<T, 2>) => N,
-    4: new (arg1: CPN<T, 0>, arg2: CPN<T, 1>, arg3: CPN<T, 2>, arg4: CPN<T, 3>) => N,
-    5: new (arg1: CPN<T, 0>, arg2: CPN<T, 1>, arg3: CPN<T, 2>, arg4: CPN<T, 3>, arg5: CPN<T, 4>) => N,
-    '_': new (...args: CP<T>) => N,
-}[N.Greater<L.Length<CP<T>>, '5'> extends '4' ? '_' : L.Length<CP<T>>];
+export type RewriteConstructorResult2<
+    BaseCtor extends new (...args: any) => any,
+    NewType extends AnyObject,
+    OmitFromBase extends keyof InstanceType<BaseCtor> = never
+> = RewriteConstructorResult2_inner<
+    BaseCtor,
+    Omit<InstanceType<BaseCtor>, OmitFromBase> & NewType
+>;
 
-
-// // type ConstructorParameters<T extends new (...args: any) => any> = T extends new (...args: infer P) => any ? P : never;
-class Aa {
-    constructor(protected str: string, protected str1?: string) {
-    }
-    sa() {}
-}
-type a = ExtractConstructor<typeof Aa>;
-// type b = RewriteConstructorResult1<typeof A, {bbb: boolean}>;
-
-type newType = {bbb: boolean, a: (a: number) => string};
-
-type aaa = RewriteConstructorResult<typeof Aa, newType>;
-declare const Constr: aaa;
-class Child extends Constr {
-    constructor(superName: string = '1') {
-        super(superName);
-    }
-};
-
-const test = new Child('asd');
-test.
+type RewriteConstructorResult2_inner<
+    BaseCtor extends new (...args: any) => any,
+    NewFinalType extends AnyObject
+> = {
+    0: new () => NewFinalType,
+    1: new (arg1: CPN<BaseCtor, 0>) => NewFinalType,
+    2: new (arg1: CPN<BaseCtor, 0>, arg2: CPN<BaseCtor, 1>) => NewFinalType,
+    3: new (arg1: CPN<BaseCtor, 0>, arg2: CPN<BaseCtor, 1>, arg3: CPN<BaseCtor, 2>) => NewFinalType,
+    4: new (arg1: CPN<BaseCtor, 0>, arg2: CPN<BaseCtor, 1>, arg3: CPN<BaseCtor, 2>, arg4: CPN<BaseCtor, 3>) => NewFinalType,
+    5: new (arg1: CPN<BaseCtor, 0>, arg2: CPN<BaseCtor, 1>, arg3: CPN<BaseCtor, 2>, arg4: CPN<BaseCtor, 3>, arg5: CPN<BaseCtor, 4>) => NewFinalType,
+    '_': new (...args: CP<BaseCtor>) => NewFinalType,
+}[N.Greater<L.Length<CP<BaseCtor>>, '5'> extends '4' ? '_' : L.Length<CP<BaseCtor>>];

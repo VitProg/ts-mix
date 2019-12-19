@@ -73,7 +73,7 @@ export type UserMixinsMarker<Mixins extends Array<Mixin<any, any>>> = {__used_mi
 
 export type ClearMixin<M extends Mixin<any, any>> = Omit<M, 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>;
 export type IUseMixins<Mixins extends Array<Mixin<any, any>>> = ClearMixin<MergeAll<Mixins>> & {mixins: MixinsProp<Mixins>} & {__used_mixins: Mixins};
-export type IUseMixinsComplex<Mixins extends Array<Mixin<any, any>>> = ClearMixin<MergeAll<Mixins>> & {mixins: MixinsProp<Mixins>} & {__used_mixins: Mixins};
+// export type IUseMixinsComplex<Mixins extends Array<Mixin<any, any>>> = ClearMixin<MergeAll<Mixins>> & {mixins: MixinsProp<Mixins>} & {__used_mixins: Mixins};
 // export type IUseMixinsSimple<Mixins extends Array<Mixin<any, any>>> = ClearMixin<MergeAll<Mixins>>;
 export type IUseMixinsWithBase<
     Mixins extends Array<Mixin<any, any>>,
@@ -84,7 +84,6 @@ export type IUseMixinsWithBase<
         mixins: MixinsProp<BaseMixins> &
             Omit<MixinsProp<Mixins>, keyof MixinsProp<BaseMixins>>;
     }
-    & {__my_mixins: Mixins}
     & {__used_mixins: AppendsIfNotExist<BaseMixins, Mixins>}
 ;
 
@@ -92,12 +91,13 @@ export type MixinTarget<M extends Mixin<any, any> = never> = AnyObject & IUseMix
 export type WithMixin<M extends Mixin<any, any>> = IUseMixins<[M]>;
 
 // export type ExtractMixins<T> = T extends IUseMixins<infer Mixins> ? Mixins : never;
-export type ExtractMixins<T extends AnyObject> = {
-    'array': ExtractMixins__<T>,
-    'plain': ExtractMixins__<T>,
-}[ExtractMixins__<T> extends any[] ? 'array' : 'plain'];
-
-export type ExtractMixins__<T extends AnyObject> = T extends {__used_mixins: infer Mixins} ? Mixins : [];
+export type ExtractMixins<T extends AnyObject> = T extends {__used_mixins: infer Mixins} ? Mixins : [];
+// export type ExtractMixins<T extends AnyObject> = {
+//     'array': ExtractMixins__<T>,
+//     'plain': ExtractMixins__<T>,
+// }[ExtractMixins__<T> extends any[] ? 'array' : 'plain'];
+//
+// type ExtractMixins__<T extends AnyObject> = T extends {__used_mixins: infer Mixins} ? Mixins : [];
 
 export const mixinsAfterInit = '__afterMixins';
 

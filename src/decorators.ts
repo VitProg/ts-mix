@@ -56,7 +56,8 @@ export function UseMixinsExtends<
     ResultType extends
         (
             // Constructor<IUseMixinsWithBase<Mixins, BaseMixins> & Omit<BaseType, '__used_mixins'> & {__t: BaseConstr}>
-            RewriteConstructorResult<BaseConstr, IUseMixinsWithBase<Mixins, BaseMixins> & Omit<BaseType, '__used_mixins'> & {
+            RewriteConstructorResult2<BaseConstr, IUseMixinsWithBase<Mixins, BaseMixins>, '__used_mixins'>
+            /*RewriteConstructorResult2<BaseConstr, IUseMixinsWithBase<Mixins, BaseMixins> & {
                 __dbg: {
                     Mixins: Mixins,
                     BaseConstr: BaseConstr,
@@ -70,10 +71,12 @@ export function UseMixinsExtends<
                         >,
                     ResultType1:
                         RewriteConstructorResult2<
-                            BaseConstr, BaseType & IUseMixinsWithBase<Mixins, BaseMixins> & Omit<BaseType, '__used_mixins'>
+                            BaseConstr,
+                            IUseMixinsWithBase<Mixins, BaseMixins>,
+                            '__used_mixins'
                         >,
                 },
-            }>
+            }, '__used_mixins'>*/
         )
 >(
     baseClass: BaseConstr,
@@ -88,7 +91,7 @@ export function UseMixinsExtends<
         }
     } as any;
 
-    applyMixinsForClass(resultClass, ...mixins);
+    applyMixinsForClass(resultClass as any, ...mixins);
     return resultClass;
 }
 
