@@ -45,6 +45,7 @@
     "terser-webpack-plugin": "^1.4.1",
     "ts-loader": "^6.0.4",
     "ts-node": "^8.3.0",
+    "ts-toolbelt": "^4.14.5",
     "tslib": "^1.10.0",
     "tslint": "^5.18.0",
     "typescript": "^3.7.3",

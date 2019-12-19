@@ -1,9 +1,11 @@
 /* tslint:disable:max-classes-per-file */
+import {L} from 'ts-toolbelt';
 import * as chai from 'chai';
 import {applyMixinsForClass, applyMixinsForObject, mixin} from "../mixin";
-import {use, useProxy} from "../decorators";
-import {IMixinAfterInitHandler, IUseMixins, MixinFull, mixinsAfterInit} from "../types";
+import {mixinsProp, use, UseMixins, UseMixinsExtends, useProxy} from "../decorators";
+import {IMixinAfterInitHandler, IUseMixins, MixinFull, mixinsAfterInit, MixinsProp,} from "../types";
 import {haveMixin, haveMixins, isMixin} from "../type-guards";
+import {UnionToIntersection} from "../common.types";
 
 const expect = chai.expect;
 
@@ -115,7 +117,9 @@ describe("", () => {
             return 'from classA';
         }
     }
-    interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {}
+
+    interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB]> {
+    }
 
 
     @use(mixinC)
@@ -125,7 +129,7 @@ describe("", () => {
         }
     }
     // todo, not implemented for the classes to be inherited (((
-    // interface ClassB extends IUseMixins<[typeof mixinC]> {}
+    // interface ClassB extends IUseMixinsWithBase<[typeof mixinC], ExtractMixins<ClassA>> {}
 
 
     @useProxy(mixinA, mixinB)
@@ -147,6 +151,110 @@ describe("", () => {
     }
     interface ClassAProxy extends IUseMixins<[typeof mixinA, typeof mixinB]> {}
 
+
+    // todo add tests
+    class ClassWithMixinsProp {
+        @mixinsProp(mixinA, mixinB) mixins!: MixinsProp<[typeof mixinA, typeof mixinC]>;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    class TestUseMixinB extends UseMixins(mixinA) {
+        name = 'b';
+        constructor(readonly str: string) {
+            super();
+        }
+    }
+
+    const classWithMixinsB = UseMixinsExtends(TestUseMixinB, mixinB);
+    const aaa = new classWithMixinsB('asd');
+    aaa.__dbg.BaseMixins
+    aaa.__dbg.Mixins
+    aaa.__dbg.ConcatMixins
+
+    class TestUseMixinBB extends classWithMixinsB {
+        name = 'bb';
+        constructor(str: string, readonly numb: number) {
+            super(str);
+        }
+    }
+
+    const classWithMixinsBB = UseMixinsExtends(TestUseMixinBB, mixinC);
+    const aaa1 = new classWithMixinsBB('asd', 1);
+    aaa1.__dbg.BaseMixins
+    aaa1.__dbg.Mixins
+    type conc = typeof aaa1.__dbg.ConcatMixins;
+
+    type OR<T extends ReadonlyArray<any>> = T[number];
+
+    type conc_ = L.Assign<[{a: '1'}], [{b: '2'}]>;
+    type conc__ = L.UnionOf<conc>;
+    const sadasfjkhsdhjfasdf  = undefined as any as conc_;
+
+    type testMixins = typeof aaa1.__dbg.testMixins;
+   /* const _estMixins:
+        BaseMixins extends any[] ?
+            {} :
+            ClearMixin<
+                MergeAll
+                    BaseMixins
+                >
+            > &
+            Omit<
+                ClearMixin<
+                    [any] extends any[] ? MergeOmit<
+                        any, depth1<
+                            [any]
+                        >
+                    > : any
+                >, keyof ClearMixin<
+                    MergeAll<
+                        BaseMixins
+                    >
+                >
+            > &
+            { mixins: MixinsProp<
+                BaseMixins
+            > & Omit<
+                MixinsProp<
+                    Mixins
+                >, keyof MixinsProp<
+                    BaseMixins
+                >
+            > } &
+            { __my_mixins: Mixins } &
+            { __used_mixins: Mixins }
+            = undefined as any as testMixins;*/
+
+    type a = {a: string} & Pick<never, string | boolean | symbol>;
+    const ca: a = {
+        a: 'asdasd',
+    }
+
+    class TestUseMixinBBB extends classWithMixinsBB {
+        name = 'bbb';
+        asdasd = 1;
+        constructor(readonly bool: boolean) {
+            super('1', 1);
+        }
+        asdas(asdasd: boolean) {
+            return 1;
+        }
+    }
+
+    const testClassA = new ClassA(1);
+
+
+    const testB = new TestUseMixinB('asdas');
+
+    const testBB = new TestUseMixinBB('set', 123);
+
+    const testBBB = new TestUseMixinBBB(true);
+    testBBB.__used_mixins
 
     // @ts-ignore
     let temp: ClassA;

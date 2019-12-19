@@ -20,7 +20,7 @@ export function mixin<Name extends string, Config extends AnyObject, PartialKeys
     };
 }
 
-export function applyMixinsForClass<Mixins extends Array<Mixin<string, AnyObject>>, T extends Constructor<AnyObject>>(
+export function applyMixinsForClass<Mixins extends Array<Mixin<string, AnyObject>>, T extends Constructor<AnyObject, any[]>>(
     targetClass: T, ...mixins: Mixins
 ): Constructor<InstanceType<T> & IUseMixins<Mixins>> & T {
     return class extends targetClass {
@@ -40,7 +40,6 @@ export function applyMixinsForObject<T extends AnyObject, Mixins extends Array<M
     return result;
 }
 
-
 export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<string, AnyObject>>>(
     target: T, mixins: Mixins
 ): void {
@@ -49,6 +48,10 @@ export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<stri
     }
 
     for (const mixin of mixins) {
+        if (!mixin) {
+            continue;
+        }
+
         const mixinName = mixin.mixinName;
         (target.mixins as AnyObject)[mixinName] = mixin;
         mixin.target = target as any;

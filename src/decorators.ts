@@ -1,5 +1,5 @@
-import {IUseMixins, Mixin} from "./types";
-import {AnyObject, Constructor} from "./common.types";
+import {AppendsIfNotExist, ExtractMixins, IUseMixins, IUseMixinsWithBase, Mixin, MixinsProp} from "./types";
+import {AnyObject, Constructor, ExtractConstructor, RewriteConstructorResult, RewriteConstructorResult2} from "./common.types";
 import {applyMixinsForClass, applyMixins} from "./mixin";
 
 export function use<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins) {
@@ -23,5 +23,72 @@ export function useProxy<Mixins extends Array<Mixin<string, AnyObject>>>(...mixi
 
         return newClass;
     };
+}
+
+export function mixinsProp<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins) {
+    return (target: object, property: 'mixins'): void => {
+        applyMixins(target, mixins);
+    };
+}
+
+
+export function UseMixins<
+    Mixins extends Array<Mixin<string, AnyObject>>,
+    ResultType = Constructor<IUseMixins<Mixins>>,
+>(
+    ...mixins: Mixins
+): ResultType {
+    let resultClass!: ResultType;
+
+    // tslint:disable-next-line:max-classes-per-file
+    resultClass = class {} as any;
+
+    applyMixinsForClass(resultClass as any, ...mixins);
+    return resultClass;
+}
+
+export function UseMixinsExtends<
+    Mixins extends Array<Mixin<string, AnyObject>>,
+    BaseConstr extends Constructor<AnyObject>,
+    BaseType extends InstanceType<BaseConstr>, // extends Constructor<infer I> ? I : never),
+    // BaseConstr extends ExtractConstructor<Base>,
+    BaseMixins extends ExtractMixins<BaseType>,
+    ResultType extends
+        (
+            // Constructor<IUseMixinsWithBase<Mixins, BaseMixins> & Omit<BaseType, '__used_mixins'> & {__t: BaseConstr}>
+            RewriteConstructorResult<BaseConstr, IUseMixinsWithBase<Mixins, BaseMixins> & Omit<BaseType, '__used_mixins'> & {
+                __dbg: {
+                    Mixins: Mixins,
+                    BaseConstr: BaseConstr,
+                    BaseType: BaseType,
+                    BaseMixins: BaseMixins,
+                    testMixins: IUseMixinsWithBase<Mixins, BaseMixins>,
+                    ConcatMixins: AppendsIfNotExist<BaseMixins, Mixins>,
+                    ResultType:
+                        RewriteConstructorResult<
+                            BaseConstr, IUseMixinsWithBase<Mixins, BaseMixins> & Omit<BaseType, '__used_mixins'>
+                        >,
+                    ResultType1:
+                        RewriteConstructorResult2<
+                            BaseConstr, BaseType & IUseMixinsWithBase<Mixins, BaseMixins> & Omit<BaseType, '__used_mixins'>
+                        >,
+                },
+            }>
+        )
+>(
+    baseClass: BaseConstr,
+    ...mixins: Mixins
+): ResultType {
+    let resultClass!: ResultType;
+
+    // tslint:disable-next-line:max-classes-per-file
+    resultClass = class extends baseClass {
+        constructor(...args: any[]) {
+            super(...args);
+        }
+    } as any;
+
+    applyMixinsForClass(resultClass, ...mixins);
+    return resultClass;
 }
 
