@@ -1,5 +1,9 @@
 /* tslint:disable:max-line-length */
-import {AnyObject, ArrayValues, MergeAll, MergeOmit, UnionToIntersection} from "./common.types";
+import {
+    AnyObject,
+    ArrayValues, MergeAllRevert,
+    UnionToIntersection,
+} from "./common.types";
 
 export interface IMixinBase<Name extends string> {
     mixinName: Name;
@@ -19,65 +23,69 @@ type MakeMixinItem<X> =
         : never;
 
 
-export type MixinsProp<items extends Array<Mixin<any, any>>> =
+export type MixinsProp<items extends ReadonlyArray<Mixin<any, any>>> =
     UnionToIntersection<ArrayValues<{ [i in keyof items]: MakeMixinItem<items[i]> }>>;
 
-// export type MixinsProp<Mixins extends Array<Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: Mixin<infer Name1, infer Conf1>, ...xs: infer More) => 0) ?
-//         depth1<More, Record<Name1, Mixin<Name1, Conf1>>> : never;
-//
-// type depth1<Mixins extends Array<Mixin<any, any>>, Last extends Record<string, Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: Mixin<infer Name1, infer Conf1>, ...xs: infer More) => 0) ?
-//         depth2<More, Last & Record<Name1, Mixin<Name1, Conf1>>> : never;
-//
-// type depth2<Mixins extends Array<Mixin<any, any>>, Last extends Record<string, Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: Mixin<infer Name1, infer Conf1>, ...xs: infer More) => 0) ?
-//         depth3<More, Last & Record<Name1, Mixin<Name1, Conf1>>> : never;
-//
-// type depth3<Mixins extends Array<Mixin<any, any>>, Last extends Record<string, Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: Mixin<infer Name1, infer Conf1>, ...xs: infer More) => 0) ?
-//         depth_<More, Last & Record<Name1, Mixin<Name1, Conf1>>> : never;
-//
-// type depth_<Mixins extends Array<Mixin<any, any>>, Last extends Record<string, Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: Mixin<infer Name1, infer Conf1>, ...xs: infer More) => 0) ?
-//         Last & Record<Name1, Mixin<Name1, Conf1>> : never;
+export type ClearMixin<M extends Mixin<any, any>, RemoveKeys extends keyof M = never> = Omit<Omit<M, 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>, RemoveKeys>;
+export type IUseMixins<Mixins extends Array<Mixin<any, any>>, Class extends AnyObject = {}> = ClearMixin<MergeAllRevert<Mixins>, keyof Class> & {mixins: MixinsProp<Mixins>} & {__used_mixins: Mixins};
 
-// export type MixinsProp<Mixins extends Array<Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: infer M, ...xs: infer More) => 0) ?
-//         M extends Mixin<infer Name, infer Config> ?
-//             depth1<More, Record<Name, M>> : never : never;
-// type depth1<Mixins extends Array<Mixin<any, any>>, Last extends Record<string, Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: infer M, ...xs: infer More) => 0) ?
-//         M extends Mixin<infer Name, infer Config> ?
-//             depth2<More, Last & Record<Name, M>> : Last : never;
-// type depth2<Mixins extends Array<Mixin<any, any>>, Last extends Record<string, Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: infer M, ...xs: infer More) => 0) ?
-//         M extends Mixin<infer Name, infer Config> ?
-//             depth3<More, Last & Record<Name, M>> : Last : never;
-// type depth3<Mixins extends Array<Mixin<any, any>>, Last extends Record<string, Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: infer M, ...xs: infer More) => 0) ?
-//         M extends Mixin<infer Name, infer Config> ?
-//             depth4<More, Last & Record<Name, M>> : Last : never;
-// type depth4<Mixins extends Array<Mixin<any, any>>, Last extends Record<string, Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: infer M, ...xs: infer More) => 0) ?
-//         M extends Mixin<infer Name, infer Config> ?
-//             depth_<More, Last & Record<Name, M>> : Last : never;
-// type depth_<Mixins extends Array<Mixin<any, any>>, Last extends Record<string, Mixin<any, any>>> =
-//     ((...a: Mixins) => 0) extends ((x: infer M, ...xs: infer More) => 0) ?
-//         M extends Mixin<infer Name, infer Config> ?
-//             Last & Record<Name, M> : Last : never;
-
-
-export type ClearMixin<M extends Mixin<any, any>> = Omit<M, 'mixinName' | 'target' | 'init' | 'setup'>;
-export type IUseMixins<Mixins extends Array<Mixin<any, any>>> = ClearMixin<MergeAll<Mixins>> & {mixins: MixinsProp<Mixins>};
+export type IUseMixinsWithBase<
+    Mixins extends Array<Mixin<any, any>>,
+    BaseMixins extends Array<Mixin<any, any>>,
+> = (BaseMixins extends any[] ? {} : ClearMixin<MergeAllRevert<BaseMixins>>) &
+    Omit<ClearMixin<MergeAllRevert<Mixins>>, keyof ClearMixin<MergeAllRevert<BaseMixins>>> &
+    {
+        mixins: MixinsProp<BaseMixins> &
+            Omit<MixinsProp<Mixins>, keyof MixinsProp<BaseMixins>>;
+    }
+    & {__used_mixins: AppendsIfNotExist<BaseMixins, Mixins>}
+;
 
 export type MixinTarget<M extends Mixin<any, any> = never> = AnyObject & IUseMixins<M extends Mixin<any, any> ? [M] : []>;
-export type WithMixin<M extends Mixin<any, any>> = IUseMixins<[M]>;
+
+
+export type ExtractMixins<T extends AnyObject> = T extends {__used_mixins: infer Mixins} ? Mixins : [];
 
 export const mixinsAfterInit = '__afterMixins';
 
 export interface IMixinAfterInitHandler {
     [mixinsAfterInit]: () => void;
 }
+
+
+////////////////
+
+import {L} from 'ts-toolbelt';
+
+type AppendIfNotExistSingle<Source extends L.List, Value extends any> = L.Includes<Source, Value> extends 1 ? Source : L.Append<Source, Value>;
+
+export type AppendsIfNotExist<Source extends readonly any[], Values extends readonly any[]> = {
+    "-": Source,
+    // @ts-ignore
+    "+": ((...args: Values) => any) extends ((v: infer Value, ...xs: infer _Values) => any)
+        ? AppendsIfNotExist<AppendIfNotExistSingle<Source, Value>, _Values>
+        : never,
+}[Values extends [] ? '-' : '+'];
+
+export class MixinAssertError extends Error {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

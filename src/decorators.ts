@@ -1,6 +1,6 @@
-import {IUseMixins, Mixin} from "./types";
+import {Mixin} from "./types";
 import {AnyObject, Constructor} from "./common.types";
-import {applyMixinsForClass, applyMixins} from "./mixin";
+import {applyMixins, applyMixinsForClass} from "./mixin";
 
 export function use<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins) {
     return function<T extends Constructor<AnyObject>>(this: unknown, ctor: T): T {
@@ -8,20 +8,10 @@ export function use<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: M
     };
 }
 
-export function useProxy<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins) {
-    return function<T extends Constructor<AnyObject>>(this: unknown, ctor: T): T {
-        // noinspection UnnecessaryLocalVariableJS
-        const newClass = new Proxy(ctor, {
-            construct(target: T, args: any) {
-                const result: T & IUseMixins<Mixins> = Reflect.construct(target, args);
-
-                applyMixins(result, mixins);
-
-                return result;
-            },
-        });
-
-        return newClass;
+export function mixinsProp<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins) {
+    return (target: object, property: 'mixins'): void => {
+        applyMixins(target, mixins);
     };
 }
+
 

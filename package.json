@@ -11,14 +11,16 @@
   "module": "dist/index.umd.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "watch": "webpack --watch",
-    "build": "webpack",
-    "build-prod": "npm run clean && rollup -c && rm ./tmp -rf",
-    "compile": "tsc -p tsconfig.es2015.json",
-    "test": "npm run compile && mocha ./test/tests/**/*.js",
-    "clean": "rm ./dist -rf && rm ./lib -rf && rm ./test -rf && rm ./tmp -rf",
+    "build-dev": "npm run clean && rollup -c rollup.config.dev.js && rimraf ./tmp",
+    "build-prod": "npm run clean && rollup -c rollup.config.prod.js && tsc -p tsconfig.test-typing-dist.json && rimraf ./tmp",
+    "pretest": "npm run clean && tsc -p tsconfig.es2015.json",
+    "test": "tsc -p tsconfig.es2015.json && mocha ./test/tests/index.js && rimraf ./test",
+    "test-typing": "tsc -p tsconfig.test-typing.json",
+    "clean": "rimraf ./dist && rimraf ./lib && rimraf ./test && rimraf ./tmp",
     "preversion": "npm run test && npm run build-prod",
-    "postversion": "git add dist/ && git commit -m '- publish new version' && git push --follow-tags && npm publish"
+    "postversion": "git add dist/ && git commit -m '- publish new version' && git push --follow-tags",
+    "prepublishOnly": "npm run preversion",
+    "publish": "npm publish"
   },
   "files": [
     "dist",
@@ -33,8 +35,8 @@
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.0.12",
     "chai": "^4.2.0",
-    "copy-webpack-plugin": "^5.0.4",
     "mocha": "^6.1.4",
+    "rimraf": "^3.0.0",
     "rollup": "^1.27.13",
     "rollup-plugin-copy": "^3.1.0",
     "rollup-plugin-delete": "^1.1.0",
@@ -42,20 +44,18 @@
     "rollup-plugin-terser": "^5.1.3",
     "rollup-plugin-typescript2": "^0.25.3",
     "source-map-loader": "^0.2.4",
-    "terser-webpack-plugin": "^1.4.1",
     "ts-loader": "^6.0.4",
     "ts-node": "^8.3.0",
+    "ts-toolbelt": "^4.14.5",
     "tslib": "^1.10.0",
     "tslint": "^5.18.0",
-    "typescript": "^3.7.3",
-    "uglifyjs-webpack-plugin": "^2.1.3",
-    "webpack": "^4.35.2",
-    "webpack-cli": "^3.3.5"
+    "typescript": "^3.7.3"
   },
   "greenkeeper": {
     "ignore": [
       "webpack",
       "webpack-cli"
     ]
-  }
+  },
+  "dependencies": {}
 }
