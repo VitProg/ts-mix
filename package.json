@@ -18,7 +18,7 @@
     "test-typing": "tsc -p tsconfig.test-typing.json",
     "clean": "rimraf ./dist && rimraf ./lib && rimraf ./test && rimraf ./tmp",
     "preversion": "npm run test && npm run build-prod",
-    "postversion": "git add dist/ && git commit -m '- publish new version' && git push --follow-tags",
+    "postversion": "git add dist/ && && git push --follow-tags",
     "prepublishOnly": "npm run preversion",
     "publish": "npm publish"
   },
