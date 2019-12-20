@@ -123,12 +123,14 @@ export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<stri
     // return target;
 }
 
+const noPermitenMixableProperties = ['__proto__', 'init', 'setup', 'target', 'mixinName'];
+
 /**
  * Returns a map of mixables. That is things that can be mixed in
  */
 function getMixables(obj: object): PropertyDescriptorMap {
     const map: PropertyDescriptorMap = {};
-    const propNames = Object.getOwnPropertyNames(obj).filter(i => i !== 'init' && i !== 'target' && i !== 'mixinName');
+    const propNames = Object.getOwnPropertyNames(obj).filter(i => noPermitenMixableProperties.includes(i) === false);
 
     for (const propName of propNames) {
         const descriptor = Object.getOwnPropertyDescriptor(obj, propName);
