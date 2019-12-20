@@ -1,4 +1,6 @@
 /* tslint:disable:max-line-length */
+import {IUseMixins} from "./types";
+
 export type AnyObject = Record<string, any>;
 
 export type ArrayValues<obj extends any[] | ReadonlyArray<any>> =
@@ -60,9 +62,18 @@ export type RewriteConstructorResult<
     BaseCtor extends new (...args: any) => any,
     NewType extends AnyObject,
     OmitFromBase extends keyof InstanceType<BaseCtor> = never
+> = Constructor<Omit<InstanceType<BaseCtor>, '__used_mixins'> & NewType, ConstructorParameters<BaseCtor>>;
+
+export type RewriteConstructorResult1<
+    BaseCtor extends new (...args: any) => any,
+    NewType extends AnyObject,
+    OmitFromBase extends keyof InstanceType<BaseCtor> = never
 > = RewriteConstructorResult_inner<
     BaseCtor,
-    Omit<InstanceType<BaseCtor>, OmitFromBase> & NewType
+    // Omit<NewType, keyof InstanceType<BaseCtor>>
+    //Omit<NewType, keyof InstanceType<BaseCtor>>
+    // InstanceType<BaseCtor>
+    Omit<InstanceType<BaseCtor>, OmitFromBase> & Omit<NewType, keyof Omit<InstanceType<BaseCtor>, OmitFromBase>>
 >;
 
 type RewriteConstructorResult_inner<

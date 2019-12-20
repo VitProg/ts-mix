@@ -107,24 +107,9 @@ const _b = new TestUseMixinB('');
 const _bb = new TestUseMixinBB('', 1);
 const _bbb = new TestUseMixinBBB(true);
 
-type T_IUseMixins_b = IUseMixins<[typeof mixinA], TestUseMixinB>;
-type T_IUseMixins_bb = IUseMixins<[typeof mixinA, typeof mixinB], TestUseMixinBB>;
-type T_IUseMixins_bbb = IUseMixins<[typeof mixinA, typeof mixinB, typeof mixinC], TestUseMixinBBB>;
-
-
-const inst_IUseMixins_b = undefined as any as T_IUseMixins_b;
-const inst_IUseMixins_bb = undefined as any as T_IUseMixins_bb;
-const inst_IUseMixins_bbb = undefined as any as T_IUseMixins_bbb;
-
-
-expectType<T_IUseMixins_b>(_b);
-expectType<T_IUseMixins_bb>(_bb);
-expectType<T_IUseMixins_bbb>(_bbb);
-
 expectType<[typeof mixinA]>(_b.__used_mixins);
 expectType<[typeof mixinA, typeof mixinB]>(_bb.__used_mixins);
 expectType<[typeof mixinA, typeof mixinB, typeof mixinC]>(_bbb.__used_mixins);
-
 
 type T_extract_b = ExtractMixins<TestUseMixinB>;
 type T_extract_bb = ExtractMixins<TestUseMixinBB>;

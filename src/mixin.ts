@@ -1,5 +1,6 @@
-import {IUseMixins, Mixin, MixinFull, mixinsAfterInit} from "./types";
-import {AnyObject, Constructor} from "./common.types";
+import {IUseMixins, IUseMixinsWithBase, Mixin, MixinFull, mixinsAfterInit} from "./types";
+import {AnyObject, Constructor, RewriteConstructorResult, RewriteConstructorResult1} from "./common.types";
+import {UseMixinsExtends} from "./methods";
 
 type ConfigComplex<Name extends string, Config extends AnyObject, PartialKeys extends Array<keyof Config> = []>
     = PartialBy<Config, OR<PartialKeys>> &
@@ -20,24 +21,35 @@ export function mixin<Name extends string, Config extends AnyObject, PartialKeys
     };
 }
 
-export function applyMixinsForClass<Mixins extends Array<Mixin<string, AnyObject>>, T extends Constructor<AnyObject, any[]>>(
-    targetClass: T, ...mixins: Mixins
-): Constructor<InstanceType<T> & IUseMixins<Mixins>> & T {
-    return class extends targetClass {
-        constructor(...args: any[]) {
-            super(...args);
+import tb from 'ts-toolbelt';
 
-            applyMixins(this as any, mixins);
-        }
-    } as any;
-}
+export const applyMixinsForClass = UseMixinsExtends;
+
+// export function applyMixinsForClass<
+//     Mixins extends Array<Mixin<string, AnyObject>>,
+//     BaseConstr extends Constructor<AnyObject>,
+//     BaseType extends InstanceType<BaseConstr>,
+//     ResultCtor extends RewriteConstructorResult<BaseConstr, IUseMixins<Mixins, BaseType>, '__used_mixins'>,
+//     // ResultCtor extends Constructor<Omit<BaseType, '__used_mixins'> & IUseMixins<Mixins, BaseType>, ConstructorParameters<BaseConstr>>,
+// >(
+//     targetClass: BaseConstr,
+//     ...mixins: Mixins
+// ): ResultCtor {
+//     return class extends targetClass {
+//         constructor(...args: any[]) {
+//             super(...args);
+//
+//             applyMixins(this as any, mixins);
+//         }
+//     } as any;
+// }
 
 export function applyMixinsForObject<T extends AnyObject, Mixins extends Array<Mixin<string, AnyObject>>>(
     target: T, ...mixins: Mixins
-): T & IUseMixins<Mixins> {
+): T & IUseMixins<Mixins, T> {
     const result: T & IUseMixins<Mixins> = {...target} as any;
     applyMixins(result, mixins);
-    return result;
+    return result as any;
 }
 
 export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<string, AnyObject>>>(

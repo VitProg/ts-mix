@@ -4,7 +4,7 @@ import {applyMixins, applyMixinsForClass} from "./mixin";
 
 export function use<Mixins extends Array<Mixin<string, AnyObject>>>(...mixins: Mixins) {
     return function<T extends Constructor<AnyObject>>(this: unknown, ctor: T): T {
-        return applyMixinsForClass(ctor, ...mixins);
+        return applyMixinsForClass(ctor, ...mixins) as any;
     };
 }
 

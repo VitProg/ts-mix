@@ -23,23 +23,66 @@ type MakeMixinItem<X> =
         : never;
 
 
-export type MixinsProp<items extends ReadonlyArray<Mixin<any, any>>> =
-    UnionToIntersection<ArrayValues<{ [i in keyof items]: MakeMixinItem<items[i]> }>>;
+export type MixinsProp<Mixins extends ReadonlyArray<Mixin<any, any>>> =
+    UnionToIntersection<ArrayValues<{ [i in keyof Mixins]: MakeMixinItem<Mixins[i]> }> & AnyObject & {__mixins: Mixins}>;
 
-export type ClearMixin<M extends Mixin<any, any>, RemoveKeys extends keyof M = never> = Omit<Omit<M, 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>, RemoveKeys>;
-export type IUseMixins<Mixins extends Array<Mixin<any, any>>, Class extends AnyObject = {}> = ClearMixin<MergeAllRevert<Mixins>, keyof Class> & {mixins: MixinsProp<Mixins>} & {__used_mixins: Mixins};
+export type MixinsPropWithBase<items extends ReadonlyArray<Mixin<any, any>>, itemsBase extends ReadonlyArray<Mixin<any, any>>> =
+    UnionToIntersection<
+        ArrayValues<{ [i in keyof itemsBase]: MakeMixinItem<itemsBase[i]> }> |
+        ArrayValues<{ [i in keyof items]: MakeMixinItem<items[i]> }>
+    > & AnyObject & {__mixins: items};
+
+
+export type ClearMixin<M extends Mixin<any, any>, RemoveKeys extends string | number | symbol = never> =
+    RemoveKeys extends keyof M ?
+        Omit<M, 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins' | RemoveKeys> :
+        Omit<M, 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>;
+
+export type ClearClassWithMixins<M extends AnyObject> = Omit<M, '__used_mixins' | 'mixins'>;
+
+export type IUseMixins<Mixins extends Array<Mixin<any, any>>, Class extends AnyObject = never> =
+    ClearMixin<MergeAllRevert<Mixins>, keyof Class> & {mixins: MixinsProp<Mixins>} & {__used_mixins: Mixins};
+
+
+type WriteableArray<T extends ReadonlyArray<any>> = T[number];
 
 export type IUseMixinsWithBase<
     Mixins extends Array<Mixin<any, any>>,
     BaseMixins extends Array<Mixin<any, any>>,
-> = (BaseMixins extends any[] ? {} : ClearMixin<MergeAllRevert<BaseMixins>>) &
-    Omit<ClearMixin<MergeAllRevert<Mixins>>, keyof ClearMixin<MergeAllRevert<BaseMixins>>> &
+    Class extends AnyObject = {},
+> = ClearClassWithMixins<Class> & IUseMixinsWithBase__inner<BaseMixins, Mixins, keyof Class>;
+    //ClearMixin<MergeAllRevert<WriteableArray<AppendIfNotExistSingle<BaseMixins, Mixins>>>, keyof Class> & {mixins: MixinsProp<Mixins>} & {__used_mixins: Mixins} & {___ASd: AppendIfNotExistSingle<BaseMixins, Mixins>};
+
+export type IUseMixinsWithBase__inner<
+    Mixins extends Array<Mixin<any, any>>,
+    BaseMixins extends Array<Mixin<any, any>>,
+    RemoveKeys extends string | number | symbol,
+> = ClearMixin<MergeAllRevert<[MergeAllRevert<BaseMixins>, MergeAllRevert<Mixins>]>, RemoveKeys> &
+    {mixins: MixinsPropWithBase<Mixins, BaseMixins>} &
     {
-        mixins: MixinsProp<BaseMixins> &
-            Omit<MixinsProp<Mixins>, keyof MixinsProp<BaseMixins>>;
-    }
-    & {__used_mixins: AppendsIfNotExist<BaseMixins, Mixins>}
-;
+        __used_mixins: AppendIfNotExistSingle<Mixins, BaseMixins[number]>,
+    } & {
+        ___Asd: {
+            bm: MergeAllRevert<BaseMixins>,
+            m: MergeAllRevert<Mixins>,
+            ma_: [MergeAllRevert<BaseMixins>, MergeAllRevert<Mixins>]
+            mall: MergeAllRevert<[MergeAllRevert<BaseMixins>, MergeAllRevert<Mixins>]>,
+            mallclear: ClearMixin<MergeAllRevert<[MergeAllRevert<BaseMixins>, MergeAllRevert<Mixins>]>, RemoveKeys>
+    },
+};
+
+// export type MixinsPropWithBasic =
+//
+// export type IUseMixinsWithBase__inner2<
+
+// > = (BaseMixins extends any[] ? {} : ClearMixin<MergeAllRevert<BaseMixins>>) &
+//     Omit<ClearMixin<MergeAllRevert<Mixins>>, keyof ClearMixin<MergeAllRevert<BaseMixins>>> &
+//     {
+//         mixins: MixinsProp<BaseMixins> &
+//             Omit<MixinsProp<Mixins>, keyof MixinsProp<BaseMixins>>;
+//     }
+//     & {__used_mixins: AppendsIfNotExist<BaseMixins, Mixins>}
+// ;
 
 export type MixinTarget<M extends Mixin<any, any> = never> = AnyObject & IUseMixins<M extends Mixin<any, any> ? [M] : []>;
 
