@@ -1,11 +1,7 @@
 /* tslint:disable:max-classes-per-file max-line-length */
-import {applyMixinsForClass, applyMixinsForObject, mixin} from "../mixin";
-import {assertHaveMixin, assertHaveMixins, haveMixin, haveMixins, isMixin} from "../type-guards";
 import * as chai from 'chai';
-import {IUseMixins, MixinFull, use} from "../index";
-import {IMixinAfterInitHandler} from "../types";
-import {mixinA, mixinB, mixinC, TestUseMixinB, TestUseMixinBB, TestUseMixinBBB} from "./common";
-import {UseMixins, UseMixinsExtends} from "../methods";
+import {assertHaveMixin, assertHaveMixins, haveMixin, haveMixins, mixin, useMixinsForObject} from "../index";
+import {useMixins} from "../mixin";
 const expect = chai.expect;
 
 describe("tests examples in readme.md", () => {
@@ -19,6 +15,7 @@ describe("tests examples in readme.md", () => {
     }
 
     const mixinAName = 'mixinA' as const;
+//                                              \  props init in method setup  /
     const mixinA = mixin<typeof mixinAName, IMixinA, ['initInSetup', 'propInMixin']>({
         mixinName: mixinAName,
 
@@ -29,12 +26,12 @@ describe("tests examples in readme.md", () => {
             };
         },
 
-        init(this: MixinFull<typeof mixinAName, IMixinA>) {
-            expect(this.target.propInMixin).to.equal(123111);
-            expect(this.target.mixins.mixinA.propInMixin).to.equal(123111);
+        init() {
+            expect(this.target.propInMixin); // 123111
+            expect(this.target.mixins.mixinA.propInMixin); // 123111
             this.propInMixin = 123;
-            expect(this.target.propInMixin).to.equal(123);
-            expect(this.target.mixins.mixinA.propInMixin).to.equal(123);
+            expect(this.target.propInMixin); // 123
+            expect(this.target.mixins.mixinA.propInMixin); // 123
         },
 
         get testA() {
@@ -44,8 +41,8 @@ describe("tests examples in readme.md", () => {
             return this.testA;
         },
         test() {
-            expect(this.target.propInMixin).to.equal(123);
-            expect(this.target.mixins.mixinA.propInMixin).to.equal(123);
+            expect(this.target.propInMixin); // 123
+            expect(this.target.mixins.mixinA.propInMixin); // 123
         },
         sameNameMethod(): string {
             return 'from mixinA';
@@ -62,77 +59,74 @@ describe("tests examples in readme.md", () => {
         },
     });
 
-
-
-    @use(mixinA, mixinB)
-    class ClassA {
-        methodInClassA() {
-            return "methodInClassA111";
-        }
-        methodB() {
-            return "test-b";
-        }
-        sameNameMethod(): string {
-            return 'from classA';
-        }
-    }
-    interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB], ClassA> {}
-
-
-
-    const instance: ClassA = new ClassA();
-
-    it ('Add to class mixins using the @use class decorator:', () => {
-        expect(instance.methodInClassA()).to.equal("methodInClassA111");
-        expect(instance.methodB()).to.equal("test-b");
-        expect(instance.mixins.mixinB.methodB()).to.equal("test-b");
-        expect(instance.methodInMixin()).to.equal("test-a");
-        expect(instance.propInMixin).to.equal(123);
-        expect(instance.initInSetup).to.instanceof(Date);
+    const mixinC = mixin({
+        mixinName: 'mixinC',
+        methodC() {
+            return 'methodC';
+        },
     });
 
-    it('Use without decorators - for class - assigning mixins outside the class definition.', () => {
+    class Test {
+        test = 'test';
+    }
+
+    const classC = useMixins(Test, mixinA, mixinB);
+
+    const instance = new classC(); 
+
+
+    it('usage - for class - assigning mixins outside the class definition.', () => {
         class Test {
             test = 'test';
         }
 
-        const classC = applyMixinsForClass(Test, mixinA, mixinB);
+        const classC = useMixins(Test, mixinA, mixinB);
+
         const instance = new classC();
 
-        expect(haveMixin(instance, mixinA, classC)).to.equal(true, 'check is instance have mixinA failed');
-        expect(haveMixin(instance, mixinB, classC)).to.equal(true, 'check is instance have mixinB failed');
+        expect(haveMixin(instance, mixinA, classC)).true;
+        expect(haveMixin(instance, mixinB, classC)).true;
+        expect(haveMixin(instance, mixinC, classC)).false;
 
-        expect(instance.test).to.equal("test");
-        expect(instance.methodB()); // "test-b" - method from mixinB
-        expect(instance.mixins.mixinB.methodB()); // "test-b" - method from mixinB
-        expect(instance.methodInMixin()); // "test-a" - method from mixinA
+        expect(instance.test).equal("test");
+        expect(instance.methodB()).equal("test-b");
+        expect(instance.mixins.mixinB.methodB()).equal("test-b");
+        expect(instance.methodInMixin()).equal("test-a");
     });
 
     it('Use without decorators - for class - using UseMixins and UseMixinsExtends methods', () => {
-        class TestUseMixinB extends UseMixins(mixinA) {
+        /* tslint:disable:max-classes-per-file variable-name */
+        const TestUseMixinB = useMixins(class TestUseMixinB {
             name = 'b';
-            constructor(readonly str: string) {
-                super();
-            }
-        }
+            fieldInB: string = 'test';
 
-        class TestUseMixinBB extends UseMixinsExtends(TestUseMixinB, mixinB) {
+            constructor(readonly str: string) {
+                //
+            }
+        }, mixinA);
+
+        const TestUseMixinBB = useMixins(class TestUseMixinBB extends TestUseMixinB {
             name = 'bb';
+            fieldInBB: number = 1;
+
             constructor(str: string, readonly numb: number) {
                 super(str);
             }
-        }
+        }, mixinB);
 
-        class TestUseMixinBBB extends UseMixinsExtends(TestUseMixinBB, mixinC) {
+        const TestUseMixinBBB = useMixins(class TestUseMixinBBB extends TestUseMixinBB {
             name = 'bbb';
             asdasd = 1;
+            fieldInBBB: boolean = true;
+
             constructor(readonly bool: boolean) {
                 super('1', 1);
             }
+
             asdas(asdasd: boolean) {
                 return 1;
             }
-        }
+        }, mixinC);
 
         const testB = new TestUseMixinB('abc');
         const testBB = new TestUseMixinBB('qwe', 987);
@@ -162,7 +156,7 @@ describe("tests examples in readme.md", () => {
             },
         };
 
-        const instance = applyMixinsForObject(testBase, mixinA, mixinB);
+        const instance = useMixinsForObject(testBase, mixinA, mixinB);
         expect(instance.test).to.equal("abc");
         expect(instance.m()).to.equal("m");
         expect(instance.methodB()).to.equal("test-b");
@@ -172,23 +166,23 @@ describe("tests examples in readme.md", () => {
 
 
     it('All methods of all mixins can be found in ``this.mixins.`` by mixin name.', () => {
-        expect(instance.sameNameMethod()).to.equal("from classA");
+        expect(instance.sameNameMethod()).to.equal("from mixinA");
         expect(instance.mixins.mixinA.sameNameMethod()).to.equal("from mixinA");
         expect(instance.mixins.mixinB.sameNameMethod()).to.equal("from mixinB");
     });
 
     it('type guards and assert functions', () => {
-        const mixinC = mixin({
-            mixinName: 'mixinC',
-        });
-
-        @use(mixinA, mixinB) // connects mixins to the class
-        class ClassA {
+        // connects mixins to the class
+        const ClassA = useMixins(class ClassA1 {
             // some methods and properties
-        }
+            static tt = 1;
+            methodInClass() {
+                return 'hello';
+            }
+            sameNameMethod(a: string){}
+        }, mixinA, mixinB);
 
-
-        const instance = new ClassA();
+        const instance = new ClassA() as any;
 
         expect(haveMixin(instance, mixinA, ClassA)).to.equal(true, 'check is instance have mixinA failed');
         expect(haveMixin(instance, mixinB, ClassA)).to.equal(true, 'check is instance have mixinB failed');
@@ -199,6 +193,9 @@ describe("tests examples in readme.md", () => {
 
         expect(() => assertHaveMixin(instance, mixinA, ClassA)).to.not.throw();
         expect(() => assertHaveMixins(instance, [mixinA, mixinB], ClassA)).to.not.throw();
+
+        assertHaveMixin(instance, mixinA, ClassA);
+        expect(typeof instance.methodInClass).equal('function');
 
         expect(() => assertHaveMixin(instance, mixinC, ClassA))
             .to.throw(Error, `The object does not have mixin '${mixinC.mixinName}'`);

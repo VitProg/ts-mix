@@ -1,15 +1,17 @@
-import {IUseMixins, IUseMixinsWithBase, Mixin, MixinFull, mixinsAfterInit} from "./types";
-import {AnyObject, Constructor, RewriteConstructorResult, RewriteConstructorResult1} from "./common.types";
-import {UseMixinsExtends} from "./methods";
+import {
+    AnyObject,
+    BuildMixinsIntersection,
+    ConfigComplex,
+    Constructor,
+    ExtractMixinsProp,
+    ExtractStatic,
+    Mixin,
+    MixinFull,
+    mixinsAfterInit,
+    MixinsProp
+} from "./types";
 
-type ConfigComplex<Name extends string, Config extends AnyObject, PartialKeys extends Array<keyof Config> = []>
-    = PartialBy<Config, OR<PartialKeys>> &
-    { mixinName: Name, init?: () => void} &
-    (OR<PartialKeys> extends never ? {} : {setup: () => Required<Pick<Config, OR<PartialKeys>>>});
-
-type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-
-type OR<T extends ReadonlyArray<any>> = T[number];
+///////////////////////
 
 export function mixin<Name extends string, Config extends AnyObject, PartialKeys extends Array<keyof Config> = []>(
     config: (Config | ConfigComplex<Name, Config, PartialKeys>) & ThisType<MixinFull<Name, Config>>
@@ -21,43 +23,71 @@ export function mixin<Name extends string, Config extends AnyObject, PartialKeys
     };
 }
 
-import tb from 'ts-toolbelt';
+/////////////////////////////
 
-export const applyMixinsForClass = UseMixinsExtends;
-
-// export function applyMixinsForClass<
-//     Mixins extends Array<Mixin<string, AnyObject>>,
-//     BaseConstr extends Constructor<AnyObject>,
-//     BaseType extends InstanceType<BaseConstr>,
-//     ResultCtor extends RewriteConstructorResult<BaseConstr, IUseMixins<Mixins, BaseType>, '__used_mixins'>,
-//     // ResultCtor extends Constructor<Omit<BaseType, '__used_mixins'> & IUseMixins<Mixins, BaseType>, ConstructorParameters<BaseConstr>>,
-// >(
-//     targetClass: BaseConstr,
-//     ...mixins: Mixins
-// ): ResultCtor {
-//     return class extends targetClass {
-//         constructor(...args: any[]) {
-//             super(...args);
-//
-//             applyMixins(this as any, mixins);
-//         }
-//     } as any;
-// }
-
-export function applyMixinsForObject<T extends AnyObject, Mixins extends Array<Mixin<string, AnyObject>>>(
-    target: T, ...mixins: Mixins
-): T & IUseMixins<Mixins, T> {
-    const result: T & IUseMixins<Mixins> = {...target} as any;
-    applyMixins(result, mixins);
-    return result as any;
+export function useMixinsForObject<T extends AnyObject,
+    Mixins extends Array<Mixin<any, any>>,
+    M1 extends Mixin<any, any>,
+    M2 extends Mixin<any, any> = never,
+    M3 extends Mixin<any, any> = never,
+    M4 extends Mixin<any, any> = never,
+    M5 extends Mixin<any, any> = never,
+    M6 extends Mixin<any, any> = never,
+    M7 extends Mixin<any, any> = never,
+    M8 extends Mixin<any, any> = never,
+    M9 extends Mixin<any, any> = never,
+    M10 extends Mixin<any, any> = never,
+    >(
+    target: T,
+    m1: M1, m2?: M2, m3?: M3, m4?: M4, m5?: M5, m6?: M6, m7?: M7, m8?: M8, m9?: M9, m10?: M10,
+): Omit<T, 'mixins'> &
+    Omit<BuildMixinsIntersection<M1, M2, M3, M4, M5, M6, M7, M8, M9, M10>, keyof T> &
+    { mixins: ExtractMixinsProp<T> & MixinsProp<[M1, M2, M3, M4, M5, M6, M7, M8, M9, M10]> } {
+    applyMixins(target, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10);
+    return target as any;
 }
 
-export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<string, AnyObject>>>(
-    target: T, mixins: Mixins
+/////////////////////////////
+
+export function useMixins<Ctor extends Constructor<any>,
+    Instance extends InstanceType<Ctor>,
+    CtorArguments extends ConstructorParameters<Ctor>,
+    NewInstance extends Omit<Instance, 'mixins' | '__m_b_type'> &
+        Omit<BuildMixinsIntersection<M1, M2, M3, M4, M5, M6, M7, M8, M9, M10>, keyof Instance> &
+        { mixins: ExtractMixinsProp<Instance> & MixinsProp<[M1, M2, M3, M4, M5, M6, M7, M8, M9, M10]> },
+    M1 extends Mixin<any, any>,
+    M2 extends Mixin<any, any> = never,
+    M3 extends Mixin<any, any> = never,
+    M4 extends Mixin<any, any> = never,
+    M5 extends Mixin<any, any> = never,
+    M6 extends Mixin<any, any> = never,
+    M7 extends Mixin<any, any> = never,
+    M8 extends Mixin<any, any> = never,
+    M9 extends Mixin<any, any> = never,
+    M10 extends Mixin<any, any> = never,
+    >(
+    klass: Ctor,
+    m1: M1, m2?: M2, m3?: M3, m4?: M4, m5?: M5, m6?: M6, m7?: M7, m8?: M8, m9?: M9, m10?: M10,
+): Constructor<NewInstance, CtorArguments> & ExtractStatic<Ctor> & { __m_b_type: Ctor } {
+    return class extends klass {
+        // tslint:disable-next-line:variable-name
+        static __m_b_type = klass;
+
+        constructor(...args: any[]) {
+            super(...args);
+            applyMixins(this as any, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10);
+        }
+    };
+}
+
+function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<any, any>>>(
+    target: T, ...mixins: Mixins
 ): void {
     if (typeof target.mixins !== 'object') {
         (target.mixins as AnyObject) = {};
     }
+
+    mixins = mixins.filter(m => !!m) as Mixins;
 
     for (const mixin of mixins) {
         if (!mixin) {

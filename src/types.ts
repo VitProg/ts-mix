@@ -1,9 +1,13 @@
-/* tslint:disable:max-line-length */
-import {
-    AnyObject,
-    ArrayValues, MergeAllRevert,
-    UnionToIntersection,
-} from "./common.types";
+/* tslint:disable:max-line-length interface-over-type-literal */
+import {L, N} from 'ts-toolbelt';
+
+export type AnyObject = Record<string, any>;
+export type ArrayValues<obj extends any[] | ReadonlyArray<any>> =
+    obj[number];
+export type UnionToIntersection<Union> =
+    (Union extends any ? (x: Union) => void : never) extends ((x: infer intersection) => void)
+        ? intersection
+        : never;
 
 export interface IMixinBase<Name extends string> {
     mixinName: Name;
@@ -14,7 +18,7 @@ export interface IMixinBase<Name extends string> {
 
 
 export type Mixin<Name extends string, Config extends AnyObject> = Config & IMixinBase<Name>;
-export type MixinFull<Name extends string, Config extends AnyObject> = Omit<IMixinBase<Name>, 'target'> & Config & {target: AnyObject & IUseMixins<[Mixin<Name, Config>]>};
+export type MixinFull<Name extends string, Config extends AnyObject> = Omit<IMixinBase<Name>, 'target'> & Config & {target: AnyObject & IUseMixins<AnyObject, Mixin<Name, Config>>};
 export type MixinThis<Config extends AnyObject> = MixinFull<any, Config>;
 
 type MakeMixinItem<X> =
@@ -22,113 +26,123 @@ type MakeMixinItem<X> =
         ? Record<Name, X>
         : never;
 
-
 export type MixinsProp<Mixins extends ReadonlyArray<Mixin<any, any>>> =
-    UnionToIntersection<ArrayValues<{ [i in keyof Mixins]: MakeMixinItem<Mixins[i]> }> & AnyObject & {__mixins: Mixins}>;
-
-export type MixinsPropWithBase<items extends ReadonlyArray<Mixin<any, any>>, itemsBase extends ReadonlyArray<Mixin<any, any>>> =
-    UnionToIntersection<
-        ArrayValues<{ [i in keyof itemsBase]: MakeMixinItem<itemsBase[i]> }> |
-        ArrayValues<{ [i in keyof items]: MakeMixinItem<items[i]> }>
-    > & AnyObject & {__mixins: items};
+    UnionToIntersection<ArrayValues<{ [i in keyof Mixins]: MakeMixinItem<Mixins[i]> }>>;
 
 
-export type ClearMixin<M extends Mixin<any, any>, RemoveKeys extends string | number | symbol = never> =
-    RemoveKeys extends keyof M ?
-        Omit<M, 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins' | RemoveKeys> :
-        Omit<M, 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>;
+export type AnyMixin = Mixin<any, any>;
+export type AnyMixinRecord = Record<string, AnyMixin>;
 
-export type ClearClassWithMixins<M extends AnyObject> = Omit<M, '__used_mixins' | 'mixins'>;
+type ExtractClassFields<Class> =  keyof (
+    Class extends {__m_b_type: Constructor<infer J>} ? J : (
+        Class extends Constructor<any> ? InstanceType<Class> :
+            Class
+        ));
 
-export type IUseMixins<Mixins extends Array<Mixin<any, any>>, Class extends AnyObject = never> =
-    ClearMixin<MergeAllRevert<Mixins>, keyof Class> & {mixins: MixinsProp<Mixins>} & {__used_mixins: Mixins};
+export type IUseMixins<
+    Class extends AnyObject,
+    M1 extends Mixin<any, any>,
+    M2 extends Mixin<any, any> = never,
+    M3 extends Mixin<any, any> = never,
+    M4 extends Mixin<any, any> = never,
+    M5 extends Mixin<any, any> = never,
+    M6 extends Mixin<any, any> = never,
+    M7 extends Mixin<any, any> = never,
+    M8 extends Mixin<any, any> = never,
+    M9 extends Mixin<any, any> = never,
+    M10 extends Mixin<any, any> = never,
+> = (Class extends Constructor<infer J> ? J : Class) &
+    Omit<BuildMixinsIntersection<M1, M2, M3, M4, M5, M6, M7, M7, M9, M10>, ExtractClassFields<Class>> &
+    MixinsPropObject<M1, M2, M3, M4, M5, M6, M7, M8, M9, M10>;
 
-
-type WriteableArray<T extends ReadonlyArray<any>> = T[number];
-
-export type IUseMixinsWithBase<
-    Mixins extends Array<Mixin<any, any>>,
-    BaseMixins extends Array<Mixin<any, any>>,
-    Class extends AnyObject = {},
-> = ClearClassWithMixins<Class> & IUseMixinsWithBase__inner<BaseMixins, Mixins, keyof Class>;
-    //ClearMixin<MergeAllRevert<WriteableArray<AppendIfNotExistSingle<BaseMixins, Mixins>>>, keyof Class> & {mixins: MixinsProp<Mixins>} & {__used_mixins: Mixins} & {___ASd: AppendIfNotExistSingle<BaseMixins, Mixins>};
-
-export type IUseMixinsWithBase__inner<
-    Mixins extends Array<Mixin<any, any>>,
-    BaseMixins extends Array<Mixin<any, any>>,
-    RemoveKeys extends string | number | symbol,
-> = ClearMixin<MergeAllRevert<[MergeAllRevert<BaseMixins>, MergeAllRevert<Mixins>]>, RemoveKeys> &
-    {mixins: MixinsPropWithBase<Mixins, BaseMixins>} &
-    {
-        __used_mixins: AppendIfNotExistSingle<Mixins, BaseMixins[number]>,
-    } & {
-        ___Asd: {
-            bm: MergeAllRevert<BaseMixins>,
-            m: MergeAllRevert<Mixins>,
-            ma_: [MergeAllRevert<BaseMixins>, MergeAllRevert<Mixins>]
-            mall: MergeAllRevert<[MergeAllRevert<BaseMixins>, MergeAllRevert<Mixins>]>,
-            mallclear: ClearMixin<MergeAllRevert<[MergeAllRevert<BaseMixins>, MergeAllRevert<Mixins>]>, RemoveKeys>
-    },
-};
-
-// export type MixinsPropWithBasic =
-//
-// export type IUseMixinsWithBase__inner2<
-
-// > = (BaseMixins extends any[] ? {} : ClearMixin<MergeAllRevert<BaseMixins>>) &
-//     Omit<ClearMixin<MergeAllRevert<Mixins>>, keyof ClearMixin<MergeAllRevert<BaseMixins>>> &
-//     {
-//         mixins: MixinsProp<BaseMixins> &
-//             Omit<MixinsProp<Mixins>, keyof MixinsProp<BaseMixins>>;
-//     }
-//     & {__used_mixins: AppendsIfNotExist<BaseMixins, Mixins>}
-// ;
-
-export type MixinTarget<M extends Mixin<any, any> = never> = AnyObject & IUseMixins<M extends Mixin<any, any> ? [M] : []>;
+export type MixinsPropObject<
+    M1 extends Mixin<any, any>,
+    M2 extends Mixin<any, any> = never,
+    M3 extends Mixin<any, any> = never,
+    M4 extends Mixin<any, any> = never,
+    M5 extends Mixin<any, any> = never,
+    M6 extends Mixin<any, any> = never,
+    M7 extends Mixin<any, any> = never,
+    M8 extends Mixin<any, any> = never,
+    M9 extends Mixin<any, any> = never,
+    M10 extends Mixin<any, any> = never,
+> = {mixins: MixinsProp<[M1, M2, M3, M4, M5, M6, M7, M8, M9, M10]> & AnyMixinRecord};
 
 
-export type ExtractMixins<T extends AnyObject> = T extends {__used_mixins: infer Mixins} ? Mixins : [];
+export type ExtractMixinsProp<T> = T extends {mixins: any} ? T['mixins'] : {};
+
+export type BuildMixinsIntersection<
+    M1 extends Mixin<any, any>,
+    M2 extends Mixin<any, any> = never,
+    M3 extends Mixin<any, any> = never,
+    M4 extends Mixin<any, any> = never,
+    M5 extends Mixin<any, any> = never,
+    M6 extends Mixin<any, any> = never,
+    M7 extends Mixin<any, any> = never,
+    M8 extends Mixin<any, any> = never,
+    M9 extends Mixin<any, any> = never,
+    M10 extends Mixin<any, any> = never,
+> =
+    M1 &
+    CheckNever<M2,
+        CheckNever<M3,
+            CheckNever<M4,
+                CheckNever<M5,
+                    CheckNever<M6,
+                        CheckNever<M7,
+                            CheckNever<M8,
+                                CheckNever<M9,
+                                    CheckNever<M10,
+                                        Omit<M10, keyof M10 | keyof M8 | keyof M7 | keyof M6 | keyof M5 | keyof M4 | keyof M3 | keyof M2 | keyof M1 | 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>,
+                                        Omit<M9, keyof M8 | keyof M7 | keyof M6 | keyof M5 | keyof M4 | keyof M3 | keyof M2 | keyof M1 | 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>
+                                    >,
+                                    Omit<M8, keyof M7 | keyof M6 | keyof M5 | keyof M4 | keyof M3 | keyof M2 | keyof M1 | 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>
+                                >,
+                                Omit<M7, keyof M6 | keyof M5 | keyof M4 | keyof M3 | keyof M2 | keyof M1 | 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>
+                            >,
+                            Omit<M6, keyof M5 | keyof M4 | keyof M3 | keyof M2 | keyof M1 | 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>
+                        >,
+                        Omit<M5, keyof M4 | keyof M3 | keyof M2 | keyof M1 | 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>
+                    >,
+                    Omit<M4, keyof M3 | keyof M2 | keyof M1 | 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>
+                >,
+                Omit<M3, keyof M2 | keyof M1 | 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>
+            >,
+            Omit<M2, keyof M1 | 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>
+        >,
+        {}
+    >;
+
+
+
+export type CheckNever<T, IfNotNever, IfNever = never> = [T] extends [never] ? IfNever : IfNotNever;
+
+
+export type MixinTarget<M extends Mixin<any, any>> = AnyObject & IUseMixins<AnyObject, M>;
+
 
 export const mixinsAfterInit = '__afterMixins';
 
 export interface IMixinAfterInitHandler {
-    [mixinsAfterInit]: () => void;
+    __afterMixins: () => void;
 }
 
 
 ////////////////
 
-import {L} from 'ts-toolbelt';
 
-type AppendIfNotExistSingle<Source extends L.List, Value extends any> = L.Includes<Source, Value> extends 1 ? Source : L.Append<Source, Value>;
-
-export type AppendsIfNotExist<Source extends readonly any[], Values extends readonly any[]> = {
-    "-": Source,
-    // @ts-ignore
-    "+": ((...args: Values) => any) extends ((v: infer Value, ...xs: infer _Values) => any)
-        ? AppendsIfNotExist<AppendIfNotExistSingle<Source, Value>, _Values>
-        : never,
-}[Values extends [] ? '-' : '+'];
 
 export class MixinAssertError extends Error {}
 
 
+export type ConfigComplex<Name extends string, Config extends AnyObject, PartialKeys extends Array<keyof Config> = []>
+    = PartialBy<Config, OR<PartialKeys>> &
+    { mixinName: Name, init?: () => void } &
+    (OR<PartialKeys> extends never ? {} : { setup: () => Required<Pick<Config, OR<PartialKeys>>> });
+type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+type OR<T extends ReadonlyArray<any>> = T[number];
 
 
+export type Constructor<T, A extends any[] = any[]> = new (...args: A) => T;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export type ExtractStatic<T extends AnyObject> = Omit<{[key in keyof T]: T[key]}, 'prototype'>;

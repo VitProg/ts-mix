@@ -18,7 +18,7 @@
 
 #### v0.2.0
 - @use - now uses class inheritance
-- applyMixinsForObject - method for apply mixins for object without decorators
+- useMixinsForObject - method for apply mixins for object without decorators
 - applyMixinsForClass - method for apply mixins for Class without decorators
 
 ##### Attentions:
