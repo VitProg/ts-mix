@@ -111,7 +111,7 @@ export type BuildMixinsIntersection<
             Omit<M2, keyof M1 | 'mixinName' | 'target' | 'init' | 'setup' | '__used_mixins'>
         >,
         {}
-    >;
+        >;
 
 
 
@@ -145,4 +145,11 @@ type OR<T extends ReadonlyArray<any>> = T[number];
 
 export type Constructor<T, A extends any[] = any[]> = new (...args: A) => T;
 
-export type ExtractStatic<T extends AnyObject> = Omit<{[key in keyof T]: T[key]}, 'prototype'>;
+export type ExtractStatic<T extends AnyObject> = CheckNever<Exclude<keyof T, 'prototype'>, Omit<{[key in keyof T]: T[key]}, 'prototype'>>;
+
+export type ConstructorWithStatic<T, Ctor extends Constructor<any>> =
+    CheckNever<
+        Exclude<keyof Ctor, 'prototype'>,
+        Constructor<T, ConstructorParameters<Ctor>> & ExtractStatic<Ctor>,
+        Constructor<T, ConstructorParameters<Ctor>>
+    >;

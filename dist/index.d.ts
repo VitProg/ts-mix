@@ -44,9 +44,10 @@ declare type ConfigComplex<Name extends string, Config extends AnyObject, Partia
 declare type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 declare type OR<T extends ReadonlyArray<any>> = T[number];
 declare type Constructor<T, A extends any[] = any[]> = new (...args: A) => T;
-declare type ExtractStatic<T extends AnyObject> = Omit<{
+declare type ExtractStatic<T extends AnyObject> = CheckNever<Exclude<keyof T, 'prototype'>, Omit<{
     [key in keyof T]: T[key];
-}, 'prototype'>;
+}, 'prototype'>>;
+declare type ConstructorWithStatic<T, Ctor extends Constructor<any>> = CheckNever<Exclude<keyof Ctor, 'prototype'>, Constructor<T, ConstructorParameters<Ctor>> & ExtractStatic<Ctor>, Constructor<T, ConstructorParameters<Ctor>>>;
 
 declare function haveMixin<M extends Mixin<any, any>, Class extends AnyObject | any = never>(v: AnyObject, mixin: M, vClass?: Class): v is (CheckNever<Class, IUseMixins<Class, M>, MixinsPropObject<M>>);
 declare function haveMixins<Mixins extends Array<Mixin<any, any>>, Class extends AnyObject | any = never>(v: AnyObject, mixins: Mixins, vClass?: Class): v is (CheckNever<Class, IUseMixins<Class, Mixins[0], Mixins[1], Mixins[2], Mixins[3], Mixins[4]>, MixinsPropObject<Mixins[0], Mixins[1], Mixins[2], Mixins[3], Mixins[4]>>);
@@ -60,7 +61,7 @@ declare function useMixinsForObject<T extends AnyObject, Mixins extends Array<Mi
 };
 declare function useMixins<Ctor extends Constructor<any>, Instance extends InstanceType<Ctor>, CtorArguments extends ConstructorParameters<Ctor>, NewInstance extends Omit<Instance, 'mixins' | '__m_b_type'> & Omit<BuildMixinsIntersection<M1, M2, M3, M4, M5, M6, M7, M8, M9, M10>, keyof Instance> & {
     mixins: ExtractMixinsProp<Instance> & MixinsProp<[M1, M2, M3, M4, M5, M6, M7, M8, M9, M10]>;
-}, M1 extends Mixin<any, any>, M2 extends Mixin<any, any> = never, M3 extends Mixin<any, any> = never, M4 extends Mixin<any, any> = never, M5 extends Mixin<any, any> = never, M6 extends Mixin<any, any> = never, M7 extends Mixin<any, any> = never, M8 extends Mixin<any, any> = never, M9 extends Mixin<any, any> = never, M10 extends Mixin<any, any> = never>(klass: Ctor, m1: M1, m2?: M2, m3?: M3, m4?: M4, m5?: M5, m6?: M6, m7?: M7, m8?: M8, m9?: M9, m10?: M10): Constructor<NewInstance, CtorArguments> & ExtractStatic<Ctor> & {
+}, M1 extends Mixin<any, any>, M2 extends Mixin<any, any> = never, M3 extends Mixin<any, any> = never, M4 extends Mixin<any, any> = never, M5 extends Mixin<any, any> = never, M6 extends Mixin<any, any> = never, M7 extends Mixin<any, any> = never, M8 extends Mixin<any, any> = never, M9 extends Mixin<any, any> = never, M10 extends Mixin<any, any> = never>(klass: Ctor, m1: M1, m2?: M2, m3?: M3, m4?: M4, m5?: M5, m6?: M6, m7?: M7, m8?: M8, m9?: M9, m10?: M10): ConstructorWithStatic<NewInstance, Ctor> & {
     __m_b_type: Ctor;
 };
 

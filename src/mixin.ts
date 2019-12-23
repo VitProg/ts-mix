@@ -2,7 +2,7 @@ import {
     AnyObject,
     BuildMixinsIntersection,
     ConfigComplex,
-    Constructor,
+    Constructor, ConstructorWithStatic,
     ExtractMixinsProp,
     ExtractStatic,
     Mixin,
@@ -65,10 +65,10 @@ export function useMixins<Ctor extends Constructor<any>,
     M8 extends Mixin<any, any> = never,
     M9 extends Mixin<any, any> = never,
     M10 extends Mixin<any, any> = never,
-    >(
+>(
     klass: Ctor,
     m1: M1, m2?: M2, m3?: M3, m4?: M4, m5?: M5, m6?: M6, m7?: M7, m8?: M8, m9?: M9, m10?: M10,
-): Constructor<NewInstance, CtorArguments> & ExtractStatic<Ctor> & { __m_b_type: Ctor } {
+): ConstructorWithStatic<NewInstance, Ctor> & { __m_b_type: Ctor} {//  & ExtractStatic<Ctor> & { __m_b_type: Ctor, __static: ExtractStatic<Ctor>, __sss: keyof Omit<Ctor, 'prototype'>} {
     return class extends klass {
         // tslint:disable-next-line:variable-name
         static __m_b_type = klass;
@@ -77,7 +77,7 @@ export function useMixins<Ctor extends Constructor<any>,
             super(...args);
             applyMixins(this as any, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10);
         }
-    };
+    } as any;
 }
 
 function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<any, any>>>(

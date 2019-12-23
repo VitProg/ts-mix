@@ -13,6 +13,7 @@ import {
 } from "./common";
 
 import * as chai from 'chai';
+import {Constructor} from "../types";
 
 const expect = chai.expect;
 
@@ -127,6 +128,8 @@ describe("main tests", () => {
 
     it('should work correctly method useMixins', () => {
         class Test {
+            // static a = 1;
+            // static aa() {}
             test = 'test';
         }
 
