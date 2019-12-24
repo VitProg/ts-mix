@@ -1,3 +1,7 @@
+#### v0.6.0
+- remove deprecated methods and decorators
+- new methods `useMixins` and `useMixinsForObject` for all cases
+
 #### v0.5.0
 - new methods for use mixins without decorators and with support class inheritances (UseMixins, UseMixinsExtends)
 - remove @useProxy decorator
