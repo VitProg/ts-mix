@@ -1,3 +1,10 @@
+#### v0.6.1
+- add `applyMixins` method for patch existing object (mutable)
+
+#### v0.6.0
+- remove deprecated methods and decorators
+- new methods `useMixins` and `useMixinsForObject` for all cases
+
 #### v0.5.0
 - new methods for use mixins without decorators and with support class inheritances (UseMixins, UseMixinsExtends)
 - remove @useProxy decorator
@@ -18,7 +25,7 @@
 
 #### v0.2.0
 - @use - now uses class inheritance
-- applyMixinsForObject - method for apply mixins for object without decorators
+- useMixinsForObject - method for apply mixins for object without decorators
 - applyMixinsForClass - method for apply mixins for Class without decorators
 
 ##### Attentions:

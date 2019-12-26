@@ -1,29 +1,29 @@
 /* tslint:disable:max-line-length */
-import {applyMixinsForClass, applyMixinsForObject} from "../mixin";
+import {useMixins, useMixinsForObject} from "../mixin";
 import {assertHaveMixin, assertHaveMixins, haveMixin, haveMixins, isMixin} from "../type-guards";
 import {
     ClassA,
     ClassB,
-    ClassWithMixinsProp,
     mixinA,
     mixinB,
     mixinC,
     TestUseMixinB,
     TestUseMixinBB,
-    TestUseMixinBBB
+    TestUseMixinBBB,
 } from "./common";
 
 import * as chai from 'chai';
+import {Constructor} from "../types";
+
 const expect = chai.expect;
+
 
 describe("main tests", () => {
 
-
+    const RND = Math.random();
 
     // @ts-ignore
-    let temp: ClassA;
-
-    const RND = Math.random();
+    let temp = new ClassA(RND);
 
     beforeEach(() => {
         temp = new ClassA(RND);
@@ -58,7 +58,7 @@ describe("main tests", () => {
         });
 
         it('should work correctly when inheriting', () => {
-            const test = new ClassB(111);
+            const test = new ClassB();
 
             if (haveMixin(test, mixinC, ClassB)) {
                 expect(test.methodC()).equal('methodC');
@@ -88,7 +88,7 @@ describe("main tests", () => {
         });
     });
 
-    it('should work correctly when assigning mixins through inheritance using the `UseMixin` and `UseMixinsExtends` methods', () => {
+    it('should work correctly when assigning mixins through inheritance - useMixin method', () => {
         /////
         const testB = new TestUseMixinB('abc');
 
@@ -126,26 +126,14 @@ describe("main tests", () => {
     });
 
 
-    it('should work correctly when using decorator @mixinsProp on property `mixin` in the class', () => {
-        const test = new ClassWithMixinsProp();
-        expect('mixinA' in test.mixins).to.true;
-        expect('mixinB' in test.mixins).to.true;
-        expect(haveMixin(test, mixinA)).to.equal(true, 'check is test have mixinB failed');
-        expect(haveMixin(test, mixinB)).to.equal(true, 'check is test have have mixinB failed');
-        expect(haveMixin(test, mixinC)).to.equal(false, 'check is test not have mixinC failed');
-
-        if (haveMixin(test, mixinA)) {
-            // noinspection SuspiciousTypeOfGuard
-            expect(test.initInSetup instanceof Date).to.equal(true, 'test.initInSetup is not a Date');
-        }
-    });
-
-    it('should work correctly simple, without decorators (applyMixinsForClass)', () => {
+    it('should work correctly method useMixins', () => {
         class Test {
+            // static a = 1;
+            // static aa() {}
             test = 'test';
         }
 
-        const classC = applyMixinsForClass(Test, mixinA, mixinB);
+        const classC = useMixins(Test, mixinA, mixinB);
         const test = new classC();
 
         expect(haveMixin(test, mixinA)).true;
@@ -167,7 +155,7 @@ describe("main tests", () => {
         expect(test.test).equal('test');
     });
 
-    it('should work correctly simple, without decorators (applyMixinsForObject)', () => {
+    it('should work correctly method useMixinsForObject', () => {
         const testBase = {
             test: 'abc',
             m() {
@@ -175,7 +163,7 @@ describe("main tests", () => {
             },
         };
 
-        const test = applyMixinsForObject(testBase, mixinA, mixinB);
+        const test = useMixinsForObject(testBase, mixinA, mixinB);
 
         expect(haveMixin(test, mixinA)).true;
         expect(haveMixin(test, mixinB)).true;
@@ -199,44 +187,58 @@ describe("main tests", () => {
 
 
     it("should be type guards correct work", () => {
-        expect(haveMixin(temp, mixinA)).true;
-        expect(haveMixin(temp, mixinB)).true;
-        expect(haveMixin(temp, mixinC)).false;
-        expect(haveMixins(temp, [mixinA])).true;
-        expect(haveMixins(temp, [mixinA, mixinB])).true;
-        expect(haveMixins(temp, [mixinA, mixinB, mixinC])).false;
+        const check: any = temp as any;
 
-        if (haveMixin(temp, mixinA)) {
-            expect(temp.methodInMixin()).equal('test-a');
+        expect(haveMixin(check, mixinA)).true;
+        expect(haveMixin(check, mixinB)).true;
+        expect(haveMixin(check, mixinC)).false;
+        expect(haveMixins(check, [mixinA])).true;
+        expect(haveMixins(check, [mixinA, mixinB])).true;
+        expect(haveMixins(check, [mixinA, mixinB, mixinC])).false;
+
+        if (haveMixin(check, mixinA, ClassA)) {
+            expect(check.methodInMixin()).equal('test-a');
         }
 
-        const testGuard: unknown = temp.mixins.mixinB;
-
-        expect(isMixin(testGuard)).true;
-        expect(isMixin(temp)).false;
-
-        if (isMixin(testGuard)) {
-            expect(testGuard.mixinName).to.equal('mixinB');
+        if (haveMixins(check, [mixinA, mixinB])) {
+            expect(check.mixins.mixinA.methodInMixin()).equal('test-a');
+            expect(check.mixins.mixinB.methodB()).equal('test-b');
+        } else {
+            expect(haveMixins(check, [mixinA, mixinB])).true;
         }
 
-        if (isMixin<typeof mixinB>(testGuard)) {
-            expect(testGuard.mixinName).to.equal('mixinB');
-            expect(testGuard.testB).to.equal('test-b');
+        expect(isMixin(check)).false;
+
+        const testMixin: unknown = check.mixins.mixinB;
+        expect(isMixin(testMixin)).true;
+        if (isMixin(testMixin)) {
+            expect(testMixin.mixinName).to.equal('mixinB');
+        } else {
+            expect(isMixin(testMixin)).true;
+        }
+
+        if (isMixin<typeof mixinB>(testMixin)) {
+            expect(testMixin.mixinName).to.equal('mixinB');
+            expect(testMixin.testB).to.equal('test-b');
+        } else {
+            expect(isMixin<typeof mixinB>(testMixin)).true;
         }
     });
 
     it("should be asserts functions correct work", () => {
-        expect(() => assertHaveMixin(temp, mixinA)).to.not.throw();
-        expect(() => assertHaveMixin(temp, mixinB)).to.not.throw();
+        const check: any = temp as any;
 
-        expect(() => assertHaveMixin(temp, mixinC))
+        expect(() => assertHaveMixin(check, mixinA)).to.not.throw();
+        expect(() => assertHaveMixin(check, mixinB)).to.not.throw();
+
+        expect(() => assertHaveMixin(check, mixinC))
             .to.throw(Error, `The object does not have mixin '${mixinC.mixinName}'`);
 
-        expect(() => assertHaveMixins(temp, [mixinA])).to.not.throw();
+        expect(() => assertHaveMixins(check, [mixinA])).to.not.throw();
 
-        expect(() => assertHaveMixins(temp, [mixinA, mixinB])).to.not.throw();
+        expect(() => assertHaveMixins(check, [mixinA, mixinB])).to.not.throw();
 
-        expect(() => assertHaveMixins(temp, [mixinA, mixinB, mixinC]))
+        expect(() => assertHaveMixins(check, [mixinA, mixinB, mixinC]))
             .to.throw(Error, `The object does not have one or more of mixins '${mixinA.mixinName}', '${mixinB.mixinName}', '${mixinC.mixinName}'`);
     });
 

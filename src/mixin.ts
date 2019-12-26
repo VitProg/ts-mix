@@ -1,14 +1,17 @@
-import {IUseMixins, Mixin, MixinFull, mixinsAfterInit} from "./types";
-import {AnyObject, Constructor} from "./common.types";
+import {
+    AnyObject,
+    BuildMixinsIntersection,
+    ConfigComplex,
+    Constructor,
+    ConstructorWithStatic,
+    ExtractMixinsProp,
+    Mixin,
+    MixinFull,
+    mixinsAfterInit,
+    MixinsProp
+} from "./types";
 
-type ConfigComplex<Name extends string, Config extends AnyObject, PartialKeys extends Array<keyof Config> = []>
-    = PartialBy<Config, OR<PartialKeys>> &
-    { mixinName: Name, init?: () => void} &
-    (OR<PartialKeys> extends never ? {} : {setup: () => Required<Pick<Config, OR<PartialKeys>>>});
-
-type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-
-type OR<T extends ReadonlyArray<any>> = T[number];
+///////////////////////
 
 export function mixin<Name extends string, Config extends AnyObject, PartialKeys extends Array<keyof Config> = []>(
     config: (Config | ConfigComplex<Name, Config, PartialKeys>) & ThisType<MixinFull<Name, Config>>
@@ -20,32 +23,85 @@ export function mixin<Name extends string, Config extends AnyObject, PartialKeys
     };
 }
 
-export function applyMixinsForClass<Mixins extends Array<Mixin<string, AnyObject>>, T extends Constructor<AnyObject, any[]>>(
-    targetClass: T, ...mixins: Mixins
-): Constructor<InstanceType<T> & IUseMixins<Mixins>> & T {
-    return class extends targetClass {
+/////////////////////////////
+
+export function useMixinsForObject<T extends AnyObject,
+    Mixins extends Array<Mixin<any, any>>,
+    M1 extends Mixin<any, any>,
+    M2 extends Mixin<any, any> = never,
+    M3 extends Mixin<any, any> = never,
+    M4 extends Mixin<any, any> = never,
+    M5 extends Mixin<any, any> = never,
+    M6 extends Mixin<any, any> = never,
+    M7 extends Mixin<any, any> = never,
+    M8 extends Mixin<any, any> = never,
+    M9 extends Mixin<any, any> = never,
+    M10 extends Mixin<any, any> = never,
+    >(
+    target: T,
+    m1: M1, m2?: M2, m3?: M3, m4?: M4, m5?: M5, m6?: M6, m7?: M7, m8?: M8, m9?: M9, m10?: M10,
+): Omit<T, 'mixins'> &
+    Omit<BuildMixinsIntersection<M1, M2, M3, M4, M5, M6, M7, M8, M9, M10>, keyof T> &
+    { mixins: ExtractMixinsProp<T> & MixinsProp<[M1, M2, M3, M4, M5, M6, M7, M8, M9, M10]> } {
+    applyMixinsInternal(
+        target,
+        true,
+        m1, m2, m3, m4, m5, m6, m7, m8, m9, m10,
+    );
+    return target as any;
+}
+
+/////////////////////////////
+
+export function useMixins<Ctor extends Constructor<any>,
+    Instance extends InstanceType<Ctor>,
+    CtorArguments extends ConstructorParameters<Ctor>,
+    NewInstance extends Omit<Instance, 'mixins' | '__m_b_type'> &
+        Omit<BuildMixinsIntersection<M1, M2, M3, M4, M5, M6, M7, M8, M9, M10>, keyof Instance> &
+        { mixins: ExtractMixinsProp<Instance> & MixinsProp<[M1, M2, M3, M4, M5, M6, M7, M8, M9, M10]> },
+    M1 extends Mixin<any, any>,
+    M2 extends Mixin<any, any> = never,
+    M3 extends Mixin<any, any> = never,
+    M4 extends Mixin<any, any> = never,
+    M5 extends Mixin<any, any> = never,
+    M6 extends Mixin<any, any> = never,
+    M7 extends Mixin<any, any> = never,
+    M8 extends Mixin<any, any> = never,
+    M9 extends Mixin<any, any> = never,
+    M10 extends Mixin<any, any> = never,
+    >(
+    klass: Ctor,
+    m1: M1, m2?: M2, m3?: M3, m4?: M4, m5?: M5, m6?: M6, m7?: M7, m8?: M8, m9?: M9, m10?: M10,
+): ConstructorWithStatic<NewInstance, Ctor> & { __m_b_type: Ctor } {
+    return class extends klass {
+        // tslint:disable-next-line:variable-name
+        static __m_b_type = klass;
+
         constructor(...args: any[]) {
             super(...args);
-
-            applyMixins(this as any, mixins);
+            applyMixinsInternal(
+                this as any,
+                true,
+                m1, m2, m3, m4, m5, m6, m7, m8, m9, m10,
+            );
         }
     } as any;
 }
 
-export function applyMixinsForObject<T extends AnyObject, Mixins extends Array<Mixin<string, AnyObject>>>(
+export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<any, any>>>(
     target: T, ...mixins: Mixins
-): T & IUseMixins<Mixins> {
-    const result: T & IUseMixins<Mixins> = {...target} as any;
-    applyMixins(result, mixins);
-    return result;
+): void {
+    return applyMixinsInternal(target, false, ...mixins);
 }
 
-export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<string, AnyObject>>>(
-    target: T, mixins: Mixins
+function applyMixinsInternal<T extends AnyObject, EX extends true | false, Mixins extends Array<Mixin<any, any>>>(
+    target: T, extendFromMixins: EX, ...mixins: Mixins
 ): void {
     if (typeof target.mixins !== 'object') {
         (target.mixins as AnyObject) = {};
     }
+
+    mixins = mixins.filter(m => !!m) as Mixins;
 
     for (const mixin of mixins) {
         if (!mixin) {
@@ -65,48 +121,50 @@ export function applyMixins<T extends AnyObject, Mixins extends Array<Mixin<stri
             }
         }
 
-        const mixables = getMixables(mixin);
+        if (extendFromMixins) {
+            const mixables = getMixables(mixin);
 
-        for (const propName of Object.keys(mixables)) {
-            const propDescription = mixables[propName];
+            for (const propName of Object.keys(mixables)) {
+                const propDescription = mixables[propName];
 
-            if (!(propName in target)) {
-                if (typeof propDescription.value === 'function') {
-                    Reflect.defineProperty(target, propName, {
-                        enumerable: false,
-                        configurable: true,
-                        writable: false,
-                        value(this: typeof target, ...args: any[]) {
-                            return mixin[propName](...args);
-                        },
-                    });
-                } else if (propDescription.get || propDescription.set) {
-                    const attributes: PropertyDescriptor = {
-                        enumerable: false,
-                        configurable: true,
-                    };
-                    if (propDescription.get) {
-                        attributes.get = function(this: typeof target) {
-                            return mixin[propName];
+                if (!(propName in target)) {
+                    if (typeof propDescription.value === 'function') {
+                        Reflect.defineProperty(target, propName, {
+                            enumerable: false,
+                            configurable: true,
+                            writable: false,
+                            value(this: typeof target, ...args: any[]) {
+                                return mixin[propName](...args);
+                            },
+                        });
+                    } else if (propDescription.get || propDescription.set) {
+                        const attributes: PropertyDescriptor = {
+                            enumerable: false,
+                            configurable: true,
                         };
+                        if (propDescription.get) {
+                            attributes.get = function(this: typeof target) {
+                                return mixin[propName];
+                            };
+                        }
+                        if (propDescription.set) {
+                            attributes.set = function(this: typeof target, value: any) {
+                                mixin[propName] = value;
+                            };
+                        }
+                        Reflect.defineProperty(target, propName, attributes);
+                    } else {
+                        Reflect.defineProperty(target, propName, {
+                            enumerable: false,
+                            configurable: true,
+                            get() {
+                                return mixin[propName];
+                            },
+                            set(value: any) {
+                                mixin[propName] = value;
+                            },
+                        });
                     }
-                    if (propDescription.set) {
-                        attributes.set = function(this: typeof target, value: any) {
-                            mixin[propName] = value;
-                        };
-                    }
-                    Reflect.defineProperty(target, propName, attributes);
-                } else {
-                    Reflect.defineProperty(target, propName, {
-                        enumerable: false,
-                        configurable: true,
-                        get() {
-                            return mixin[propName];
-                        },
-                        set(value: any) {
-                            mixin[propName] = value;
-                        },
-                    });
                 }
             }
         }

@@ -1,6 +1,6 @@
 {
   "name": "ts-mix",
-  "version": "0.5.0",
+  "version": "0.6.1",
   "description": "Yet another library for the implementation of mixins in TypeScript...",
   "repository": {
     "type": "git",
@@ -18,9 +18,7 @@
     "test-typing": "tsc -p tsconfig.test-typing.json",
     "clean": "rimraf ./dist && rimraf ./lib && rimraf ./test && rimraf ./tmp",
     "preversion": "npm run test && npm run build-prod",
-    "postversion": "git add dist/ && && git push --follow-tags",
-    "prepublishOnly": "npm run preversion",
-    "publish": "npm publish"
+    "postversion": "git add dist/ && git commit -m '- publish new version' && git push --follow-tags"
   },
   "files": [
     "dist",
@@ -46,7 +44,6 @@
     "source-map-loader": "^0.2.4",
     "ts-loader": "^6.0.4",
     "ts-node": "^8.3.0",
-    "ts-toolbelt": "^4.14.5",
     "tslib": "^1.10.0",
     "tslint": "^5.18.0",
     "typescript": "^3.7.3"

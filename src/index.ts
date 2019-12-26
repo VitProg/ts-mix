@@ -1,14 +1,35 @@
-import {IUseMixins, Mixin, MixinFull, MixinThis, IMixinBase, MixinsProp, MixinTarget, MixinAssertError} from './types';
-import {MergeAll, UnionToIntersection, ArrayValues, MergeOmit} from './common.types';
-import {use, mixinsProp} from './decorators';
-import {UseMixins, UseMixinsExtends} from './methods';
-import {haveMixins, haveMixin, assertHaveMixins, assertHaveMixin, isMixin} from './type-guards';
-import {mixin, applyMixinsForObject, applyMixinsForClass} from './mixin';
+import {
+    AnyMixin,
+    AnyMixinRecord,
+    ArrayValues,
+    IMixinAfterInitHandler,
+    IMixinBase,
+    IUseMixins,
+    Mixin,
+    MixinAssertError,
+    MixinFull,
+    MixinsProp,
+    MixinTarget,
+    UnionToIntersection,
+} from './types';
+import {assertHaveMixin, assertHaveMixins, haveMixin, haveMixins, isMixin} from './type-guards';
+import {applyMixins, mixin, useMixins, useMixinsForObject} from './mixin';
 
 
-export {IUseMixins, Mixin, MixinFull, MixinThis, IMixinBase, MixinsProp, MixinTarget, MixinAssertError};
-export {MergeAll, UnionToIntersection, ArrayValues, MergeOmit};
-export {use, mixinsProp};
-export {UseMixins, UseMixinsExtends};
-export {haveMixins, haveMixin, assertHaveMixins, assertHaveMixin, isMixin};
-export {mixin, applyMixinsForObject, applyMixinsForClass};
+export {
+    IUseMixins,
+    Mixin,
+    MixinFull,
+    IMixinBase,
+    MixinsProp,
+    MixinTarget,
+    MixinAssertError,
+    UnionToIntersection,
+    ArrayValues,
+    AnyMixinRecord,
+    AnyMixin,
+    IMixinAfterInitHandler,
+    haveMixins, haveMixin, assertHaveMixins, assertHaveMixin, isMixin,
+    useMixinsForObject, useMixins, mixin,
+    applyMixins,
+};

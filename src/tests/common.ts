@@ -1,9 +1,9 @@
-/* tslint:disable:max-classes-per-file */
-import {mixin} from "../mixin";
-import {IMixinAfterInitHandler, IUseMixins, MixinFull, mixinsAfterInit, MixinsProp} from "../types";
-import {mixinsProp, use} from "../decorators";
+/* tslint:disable:max-classes-per-file variable-name */
+import {mixin, useMixins} from "../mixin";
+import {AnyObject, IMixinAfterInitHandler, MixinFull} from "../types";
 import * as chai from 'chai';
-import {UseMixins, UseMixinsExtends} from "../methods";
+import {haveMixin} from "../index";
+
 const expect = chai.expect;
 
 
@@ -30,7 +30,7 @@ export const mixinA = mixin<typeof mixinAName, IMixinA, ['initInSetup', 'propInM
         };
     },
 
-    init(this: MixinFull<typeof mixinAName, IMixinA>) {
+    init() {
         expect(this.target.propInMixin).to.equal(123111);
         expect(this.target.mixins.mixinA.propInMixin).to.equal(123111);
         this.propInMixin = 123;
@@ -78,10 +78,27 @@ export const mixinC = mixin({
     },
 });
 
+//////////////////////////////////////////
 
-@use(mixinA, mixinB)
-export class ClassA implements IMixinAfterInitHandler {
+// class CA {
+//     static staticProp = 'test static';
+//
+//     constructor(props: any) {
+//
+//     }
+//
+// }
+// function testF<T extends AnyObject>(cl: T): ExtractStatic<T> {
+//     return cl as any;
+// }
+// const a = testF(CA);
+// a.
+//
+// type ExtractStatic<T extends AnyObject> = Omit<{[key in keyof T]: T[key]}, 'prototype'>;
 
+
+
+export const ClassA = useMixins(class ClassA implements IMixinAfterInitHandler {
     fieldInClassA = '111';
     test: number;
 
@@ -91,67 +108,78 @@ export class ClassA implements IMixinAfterInitHandler {
         this.test = val;
     }
 
-    [mixinsAfterInit]() {
-        expect(this.mixins.mixinA.initInSetup).not.undefined;
-        // noinspection SuspiciousTypeOfGuard
-        expect(this.mixins.mixinA.initInSetup instanceof Date).true;
-        expect(this.initInSetup).not.undefined;
-        // noinspection SuspiciousTypeOfGuard
-        expect(this.initInSetup instanceof Date).true;
+    __afterMixins() {
+        if (haveMixin(this, mixinA, ClassA)) {
+            expect(this.mixins.mixinA.initInSetup).not.undefined;
+            // noinspection SuspiciousTypeOfGuard
+            expect(this.mixins.mixinA.initInSetup instanceof Date).true;
+            expect(this.initInSetup).not.undefined;
+            // noinspection SuspiciousTypeOfGuard
+            expect(this.initInSetup instanceof Date).true;
+        } else {
+            expect(haveMixin(this, mixinA, ClassA)).true;
+        }
     }
 
     methodInClassA() {
-        expect(this.propInMixin).to.equal(123);
-        expect(this.mixins.mixinA.propInMixin).to.equal(123);
-        expect(this.test).to.not.equal(666);
-        expect(this.mixins.mixinB.test).to.equal(666);
+        if (haveMixin(this, mixinA, ClassA)) {
+            expect(this.propInMixin).to.equal(123);
+            expect(this.mixins.mixinA.propInMixin).to.equal(123);
+            expect(this.test).to.not.equal(666);
+            expect(this.mixins.mixinB.test).to.equal(666);
+        } else {
+            expect(haveMixin(this, mixinA, ClassA)).true;
+        }
         return 'methodInClassA' + this.fieldInClassA;
     }
 
     sameNameMethod() {
         return 'from classA';
     }
-}
-export interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB], ClassA> {}
+}, mixinA, mixinB);
 
 
-@use(mixinC)
-export class ClassB extends ClassA {
+export const ClassB = useMixins(class ClassB extends ClassA {
+    constructor() {
+        super(1);
+    }
+
+    fieldInB: number = Math.random();
+
     hello() {
         return 'hello';
     }
-}
-// todo, not implemented for the classes to be inherited (((
-// interface ClassB extends IUseMixinsWithBase<[typeof mixinC], ExtractMixins<ClassA>> {}
+}, mixinB, mixinC);
 
 
-
-export class ClassWithMixinsProp {
-    @mixinsProp(mixinA, mixinB) mixins!: MixinsProp<[typeof mixinA, typeof mixinB]>;
-}
-
-
-export class TestUseMixinB extends UseMixins(mixinA) {
+export const TestUseMixinB = useMixins(class TestUseMixinB {
     name = 'b';
-    constructor(readonly str: string) {
-        super();
-    }
-}
+    fieldInB: string = 'test';
 
-export class TestUseMixinBB extends UseMixinsExtends(TestUseMixinB, mixinB) {
+    constructor(readonly str: string) {
+        //
+    }
+}, mixinA);
+
+export const TestUseMixinBB = useMixins(class TestUseMixinBB extends TestUseMixinB {
     name = 'bb';
+    fieldInBB: number = 1;
+
     constructor(str: string, readonly numb: number) {
         super(str);
     }
-}
+}, mixinB);
 
-export class TestUseMixinBBB extends UseMixinsExtends(TestUseMixinBB, mixinC) {
+export const TestUseMixinBBB = useMixins(class TestUseMixinBBB extends TestUseMixinBB {
     name = 'bbb';
     asdasd = 1;
+    fieldInBBB: boolean = true;
+
     constructor(readonly bool: boolean) {
         super('1', 1);
     }
+
     asdas(asdasd: boolean) {
         return 1;
     }
-}
+}, mixinC);

@@ -32,6 +32,7 @@ interface IMixinA {
 }
 
 const mixinAName = 'mixinA' as const;
+//                                              \  props init in method setup  /
 const mixinA = mixin<typeof mixinAName, IMixinA, ['initInSetup', 'propInMixin']>({
     mixinName: mixinAName,
 
@@ -42,7 +43,7 @@ const mixinA = mixin<typeof mixinAName, IMixinA, ['initInSetup', 'propInMixin']>
         };
     },
 
-    init(this: MixinFull<typeof mixinAName, IMixinA>) {
+    init() {
         console.log(this.target.propInMixin); // 123111
         console.log(this.target.mixins.mixinA.propInMixin); // 123111
         this.propInMixin = 123;
@@ -77,17 +78,24 @@ const mixinB = mixin({
         return "test-b";
     },
 });
+
+const mixinC = mixin({
+    mixinName: 'mixinC',
+    methodC() {
+        return 'methodC';
+    },
+});
 ```
 ___
 
-### Use without decorators for Class:
+### Usage
 ##### Assigning mixins outside the class definition:
 ```typescript
 class Test {
     test = 'test';
 }
 
-const classC = applyMixinsForClass(Test, mixinA, mixinB);
+const classC = useMixins(Test, mixinA, mixinB);
 
 const instance = new classC();
 
@@ -102,33 +110,40 @@ console.log(instance.methodInMixin()); // "test-a" - method from mixinA
 ```
 
 ##### Assigning mixins during class definition
-Inheritance from result of methods UseMixins(...mixins) and UseMixinsExtends(baseClass, ...mixins)
+Inheritance from result of methods useMixins(Class, ...mixins)
 ```typescript
-class TestUseMixinB extends UseMixins(mixinA) {
+/* tslint:disable:max-classes-per-file variable-name */
+export const TestUseMixinB = useMixins(class TestUseMixinB {
     name = 'b';
-    constructor(readonly str: string) {
-        super();
-    }
-}
+    fieldInB: string = 'test';
 
-class TestUseMixinBB extends UseMixinsExtends(TestUseMixinB, mixinB) {
+    constructor(readonly str: string) {
+        //
+    }
+}, mixinA);
+
+export const TestUseMixinBB = useMixins(class TestUseMixinBB extends TestUseMixinB {
     name = 'bb';
+    fieldInBB: number = 1;
+
     constructor(str: string, readonly numb: number) {
         super(str);
     }
-}
+}, mixinB);
 
-class TestUseMixinBBB extends UseMixinsExtends(TestUseMixinBB, mixinC) {
+export const TestUseMixinBBB = useMixins(class TestUseMixinBBB extends TestUseMixinBB {
     name = 'bbb';
     asdasd = 1;
+    fieldInBBB: boolean = true;
+
     constructor(readonly bool: boolean) {
         super('1', 1);
     }
+
     asdas(asdasd: boolean) {
         return 1;
     }
-}
-
+}, mixinC);
 ////// usage:
 
 const testB = new TestUseMixinB('abc');
@@ -155,10 +170,10 @@ This method is the most convenient, so how:
 - no need for decorators or hacks with an additional interface
 - clear syntax
 
-`UseMixinsExtends` - used when you to create a class that extends from another class.
 ___
 
-### Use without decorators for Object:
+### Use for Object:
+Immutable:
 ```typescript
 const testBase = {
     test: 'abc',
@@ -167,7 +182,7 @@ const testBase = {
     },
 };
 
-const instance = applyMixinsForObject(testBase, mixinA, mixinB);
+const instance = useMixinsForObject(testBase, mixinA, mixinB);
 console.log(instance.test); // "abc" - method object testBase
 console.log(instance.m()); // "m" - method object testBase
 console.log(instance.methodB()); // "test-b" - method from mixinB
@@ -175,42 +190,24 @@ console.log(instance.mixins.mixinB.methodB()); // "test-b" - method from mixinB
 console.log(instance.methodInMixin()); // "test-a" - method from mixinA
 ```
 
-___
-
-### Use with decorators:
-##### Add to class mixins using the @use class decorator:
+Mmutable
 ```typescript
-@use(mixinA, mixinB)
-class ClassA {
-    methodInClassA() {
-        return "methodInClassA111";
-    }
-    methodB() {
-        return "test-b";
-    }
-    sameNameMethod(): string {
-        return 'from classA';
-    }
-}
-// (!) this hack is necessary for correct typing and operation of intellisense
-interface ClassA extends IUseMixins<[typeof mixinA, typeof mixinB], ClassA> {}
+const test = {
+    test: 'abc',
+    m() {
+        return 'm';
+    },
+};
 
-const instance = new ClassA(123);
-console.log(instance.methodInClassA()); // "methodInClassA111"
-console.log(instance.methodB()); // "test-b" - method from mixinB
-console.log(instance.mixins.mixinB.methodB()); // "test-b" - method from mixinB
-console.log(instance.methodInMixin()); // "test-a" - method from mixinA
-console.log(instance.propInMixin); // 123
-console.log(instance.initInSetup); // ~ Fri Dec 20 2019 13:59:28 GMT+0300 (GMT+03:00)
-```
-
-##### Add mixins to the class using the decorator @mixinsProp on property `mixin` in the class:
-```typescript
-export class ClassWithMixinsProp {
-    @mixinsProp(mixinA, mixinB) mixins!: MixinsProp<[typeof mixinA, typeof mixinB]>;
+applyMixins(test, mixinA, mixinB);
+console.log(test.test); // "abc" - method object testBase
+console.log(test.m()); // "m" - method object testBase
+if (haveMixins(test, [mixinA, mixinB])) {
+    console.log(test.mixins.mixinB.methodB()); // "test-b" - method from mixinB
+    console.log(test.mixins.mixinB.methodB()); // "test-b" - method from mixinB
+    console.log(test.mixins.mixinA.methodInMixin()); // "test-a" - method from mixinA
 }
 ```
-This way is useful when it is necessary to call the mixins through `instance.mixins.*`, or using typeGuard functions
 
 ___
 
@@ -242,14 +239,10 @@ ___
 
 Example:
 ```typescript
-const mixinC = mixin({
-    mixinName: 'mixinC',
-});
-
-@use(mixinA, mixinB) // connects mixins to the class
-class ClassA {
+// connects mixins to the class
+const ClassA = useMixins(class ClassA {
     // some methods and properties
-}
+}, mixinA, mixinB);
 
 
 const instance = new ClassA();
@@ -269,8 +262,7 @@ assertHaveMixins(instance, [mixinA, mixinB, mixinC], ClassA); // throw error Mix
 ```
 
 ## Limitations
-- Due to problems with recursive types, there are limits on the number of mixins passed to @IUseMixins and other decorators and methods - a maximum of 6 mixins. For all that more than 6 it will not work intellisense IDE
-- **For @use decorator only** - When inheriting, if using new mixins, you cannot be applied to child class syntax ```interface ClassB extends IUseMixins<[typeof mixinC]>{}```. You can use the type guard method ```haveMixin(this, mixinC)```
+- methods useMixins and other have limit 5 mixins
 
 ## NPM Scripts
 
