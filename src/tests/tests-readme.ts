@@ -1,7 +1,8 @@
 /* tslint:disable:max-classes-per-file max-line-length */
 import * as chai from 'chai';
-import {assertHaveMixin, assertHaveMixins, haveMixin, haveMixins, mixin, useMixinsForObject} from "../index";
+import {applyMixins, assertHaveMixin, assertHaveMixins, haveMixin, haveMixins, mixin, useMixinsForObject} from "../index";
 import {useMixins} from "../mixin";
+
 const expect = chai.expect;
 
 describe("tests examples in readme.md", () => {
@@ -128,9 +129,9 @@ describe("tests examples in readme.md", () => {
             }
         }, mixinC);
 
-        const testB = new TestUseMixinB('abc');
-        const testBB = new TestUseMixinBB('qwe', 987);
-        const testBBB = new TestUseMixinBBB(true);
+        const testB = (new TestUseMixinB('abc')) as any;
+        const testBB = (new TestUseMixinBB('qwe', 987)) as any;
+        const testBBB = (new TestUseMixinBBB(true)) as any;
 
         expect(testB.str).to.equal('abc');
         expect(haveMixin(testB, mixinA, TestUseMixinB)).to.equal(true, 'check is testB have mixinB failed');
@@ -148,7 +149,7 @@ describe("tests examples in readme.md", () => {
         expect(haveMixin(testBBB, mixinC, TestUseMixinBBB)).to.equal(true, 'check is testBBB have mixinC failed');
     });
 
-    it('Use without decorators - for Object.', () => {
+    it('Use without decorators - for Object - immutable.', () => {
         const testBase = {
             test: 'abc',
             m() {
@@ -162,6 +163,25 @@ describe("tests examples in readme.md", () => {
         expect(instance.methodB()).to.equal("test-b");
         expect(instance.mixins.mixinB.methodB()).to.equal("test-b");
         expect(instance.methodInMixin()).to.equal("test-a");
+    });
+
+
+    it('Use without decorators - for Object - mutable.', () => {
+        const test = {
+            test: 'abc',
+            m() {
+                return 'm';
+            },
+        };
+
+        applyMixins(test, mixinA, mixinB);
+        expect(test.test).to.equal("abc");
+        expect(test.m()).to.equal("m");
+        if (haveMixins(test, [mixinA, mixinB])) {
+            expect(test.mixins.mixinB.methodB()).to.equal("test-b");
+            expect(test.mixins.mixinB.methodB()).to.equal("test-b");
+            expect(test.mixins.mixinA.methodInMixin()).to.equal("test-a");
+        }
     });
 
 

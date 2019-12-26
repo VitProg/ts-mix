@@ -13,7 +13,7 @@ import {
     UnionToIntersection,
 } from './types';
 import {assertHaveMixin, assertHaveMixins, haveMixin, haveMixins, isMixin} from './type-guards';
-import {mixin, useMixins, useMixinsForObject} from './mixin';
+import {applyMixins, mixin, useMixins, useMixinsForObject} from './mixin';
 
 
 export {
@@ -29,6 +29,7 @@ export {
     AnyMixinRecord,
     AnyMixin,
     IMixinAfterInitHandler,
+    haveMixins, haveMixin, assertHaveMixins, assertHaveMixin, isMixin,
+    useMixinsForObject, useMixins, mixin,
+    applyMixins,
 };
-export {haveMixins, haveMixin, assertHaveMixins, assertHaveMixin, isMixin};
-export {useMixinsForObject, useMixins, mixin};

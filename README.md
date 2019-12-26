@@ -173,6 +173,7 @@ This method is the most convenient, so how:
 ___
 
 ### Use for Object:
+Immutable:
 ```typescript
 const testBase = {
     test: 'abc',
@@ -187,6 +188,25 @@ console.log(instance.m()); // "m" - method object testBase
 console.log(instance.methodB()); // "test-b" - method from mixinB
 console.log(instance.mixins.mixinB.methodB()); // "test-b" - method from mixinB
 console.log(instance.methodInMixin()); // "test-a" - method from mixinA
+```
+
+Mmutable
+```typescript
+const test = {
+    test: 'abc',
+    m() {
+        return 'm';
+    },
+};
+
+applyMixins(test, mixinA, mixinB);
+console.log(test.test); // "abc" - method object testBase
+console.log(test.m()); // "m" - method object testBase
+if (haveMixins(test, [mixinA, mixinB])) {
+    console.log(test.mixins.mixinB.methodB()); // "test-b" - method from mixinB
+    console.log(test.mixins.mixinB.methodB()); // "test-b" - method from mixinB
+    console.log(test.mixins.mixinA.methodInMixin()); // "test-a" - method from mixinA
+}
 ```
 
 ___

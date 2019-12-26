@@ -1,3 +1,6 @@
+#### v0.6.1
+- add `applyMixins` method for patch existing object (mutable)
+
 #### v0.6.0
 - remove deprecated methods and decorators
 - new methods `useMixins` and `useMixinsForObject` for all cases
