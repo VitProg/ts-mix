@@ -17,12 +17,12 @@ export function getRollupConfig(isProd = false) {
         },
     ];
 
-    if (!isProd) {
+    // if (!isProd) {
         output = output.map(o => ({
             ...o,
             sourcemap: 'inline',
         }));
-    }
+    // }
 
     const config = [
         {
