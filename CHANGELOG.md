@@ -1,3 +1,6 @@
+#### v0.6.2
+- bugfix - copy mixin config object when applying mixin
+
 #### v0.6.1
 - add `applyMixins` method for patch existing object (mutable)
 

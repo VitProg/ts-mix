@@ -103,10 +103,11 @@ function applyMixinsInternal<T extends AnyObject, EX extends true | false, Mixin
 
     mixins = mixins.filter(m => !!m) as Mixins;
 
-    for (const mixin of mixins) {
-        if (!mixin) {
+    for (const mixinOrig of mixins) {
+        if (!mixinOrig) {
             continue;
         }
+        const mixin = {...mixinOrig};
 
         const mixinName = mixin.mixinName;
         (target.mixins as AnyObject)[mixinName] = mixin;
