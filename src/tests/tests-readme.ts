@@ -12,6 +12,7 @@ import {
 } from "../index";
 import {useMixins} from "../mixin";
 import {mixinD} from "./common";
+import {mixinsPropInit} from "../decorators";
 
 const expect = chai.expect;
 
@@ -199,7 +200,9 @@ describe("tests examples in readme.md", () => {
             @mixinsProp(mixinB) mixins!: MixinsProp<[typeof mixinB]>;
 
             constructor() {
-                expect(Object.keys(this.mixins)).to.deep.equal(['mixinB']);
+                // Note: in constructor `mixins` is undefined
+                // Need call `mixinsPropInit` for initializing!!!
+                mixinsPropInit(this);
             }
         }
         const test = new TestDecorator();

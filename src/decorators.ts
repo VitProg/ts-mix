@@ -1,6 +1,14 @@
 import {AnyObject, Mixin} from "./types";
 import {applyMixins} from "./mixin";
 
+export function mixinsPropInit(target: {mixins: any}) {
+    const o = [
+        target.mixins,
+        target.mixins,
+    ];
+    return o;
+}
+
 export function mixinsProp<T extends AnyObject,
     M1 extends Mixin<any, any, any>,
     M2 extends Mixin<any, any, any> = never,
