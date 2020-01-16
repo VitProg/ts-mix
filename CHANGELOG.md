@@ -1,3 +1,6 @@
+#### v0.7.1
+- fix - mixin rewrites
+
 #### v0.7.0
 - add - decorator `@mixinsProp`
 - add - typed `target` in mixin declaration

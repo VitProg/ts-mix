@@ -17,12 +17,12 @@ export function getRollupConfig(isProd = false) {
         },
     ];
 
-    // if (!isProd) {
+    if (!isProd) {
         output = output.map(o => ({
             ...o,
             sourcemap: 'inline',
         }));
-    // }
+    }
 
     const config = [
         {
@@ -60,7 +60,11 @@ export function getRollupConfig(isProd = false) {
     ];
 
     if (isProd) {
-        config[0].plugins.push(terser());
+        config[0].plugins.push(terser({
+            output: {
+                beautify: true,
+            }
+        }));
     }
 
     return config;

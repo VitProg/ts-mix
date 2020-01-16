@@ -210,10 +210,21 @@ function applyMixinsInternal<T extends AnyObject, EX extends true | false, Mixin
             for (const propName of Object.keys(rewrites)) {
                 const originalDescriptor = getOriginalPropertyDescriptor(target, propName);
                 const rewriteDescriptor = Reflect.getOwnPropertyDescriptor(rewrites, propName);
-                const rewriteItem = rewrites[propName];
-                if (rewriteItem && originalDescriptor && rewriteDescriptor) {
+                if (originalDescriptor && rewriteDescriptor) {
                     if (!(propName in mixin.origin)) {
-                        Reflect.defineProperty(mixin.origin, propName, originalDescriptor);
+                        const toOriginDescriptor = {
+                            ...originalDescriptor,
+                        };
+                        if (typeof toOriginDescriptor.value === 'function') {
+                            toOriginDescriptor.value = toOriginDescriptor.value.bind(mixin.target);
+                        }
+                        if (typeof toOriginDescriptor.get === 'function') {
+                            toOriginDescriptor.get = toOriginDescriptor.get.bind(mixin.target);
+                        }
+                        if (typeof toOriginDescriptor.set === 'function') {
+                            toOriginDescriptor.set = toOriginDescriptor.set.bind(mixin.target);
+                        }
+                        Reflect.defineProperty(mixin.origin, propName, toOriginDescriptor);
                     }
 
                     const isRewriteFunction = typeof rewriteDescriptor.value === 'function';
@@ -239,7 +250,9 @@ function applyMixinsInternal<T extends AnyObject, EX extends true | false, Mixin
                         }
                     } else if (isOriginalGetter || isOriginalSetter) {
                         if (isOriginalGetter) {
-                            if (isRewriteGetter) {
+                            if (isRewriteFunction && rewriteDescriptor.value.length <= 0) {
+                                newDescriptor.get = rewriteDescriptor.value.bind(mixin.target);
+                            } else if (isRewriteGetter) {
                                 newDescriptor.get = rewriteDescriptor.get;
                             } else {
                                 newDescriptor.get = originalDescriptor.get;
