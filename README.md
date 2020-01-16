@@ -170,6 +170,24 @@ This method is the most convenient, so how:
 - no need for decorators or hacks with an additional interface
 - clear syntax
 
+
+___
+
+##### Assigning mixins during property decorator
+Decorator @mixinsProp usage:
+```typescript
+class TestDecorator {
+    @mixinsProp(mixinB) mixins!: MixinsProp<[typeof mixinB]>;
+
+    constructor() {
+        console.log(Object.keys(this.mixins)); // 'mixinB'
+    }
+}
+const test = new TestDecorator();
+
+console.log(test.mixins.mixinB.methodB()); // 'test-b'
+console.log(test.mixins.mixinB.sameNameMethod()); // 'from mixinB'
+```
 ___
 
 ### Use for Object:
@@ -190,7 +208,7 @@ console.log(instance.mixins.mixinB.methodB()); // "test-b" - method from mixinB
 console.log(instance.methodInMixin()); // "test-a" - method from mixinA
 ```
 
-Mmutable
+Mutable
 ```typescript
 const test = {
     test: 'abc',
@@ -209,6 +227,7 @@ if (haveMixins(test, [mixinA, mixinB])) {
 }
 ```
 
+
 ___
 
 
@@ -226,6 +245,81 @@ console.log(instance.mixins.mixinB.sameNameMethod()); // "from mixinB"
 
 ___
 
+
+### Rewrite some methods or fields in target
+With property `rewrite` in mixin config, you can rewrite some fields in target object
+
+When creating a mixin, you can specify to it specify target interface.
+
+_If the target does not satisfy the target interfaces of all the mixins, TypeScript will warn about it_
+
+```typescript
+const mixinD = mixin<
+    'mixinD',
+    { methodInD: () => string },
+    [],
+    { readonly fall: string, asd: () => string } // specify target interface
+>(
+    {
+        mixinName: 'mixinD' as const,
+        rewrite(th) {
+            let fall = 'a';
+            return {
+                get fall() {
+                    return 'fall in mixinD - ' + fall + ' - ' + th.origin.fall;
+                },
+                set fall(v: string) {
+                    fall = v;
+                },
+                asd() {
+                    return 'WWW';
+                },
+            };
+        },
+        methodInD() {
+            return this.target.fall;
+        },
+    }
+);
+
+class Test {
+    fall = 'test';
+    asd() {
+        return 'Hello my name ' + this.fall;
+    }
+    test() {
+        return this.fall;
+    }
+}
+const test = new Test();
+
+console.log(test.fall); // 'test');
+console.log(test.asd()); // 'Hello my name test');
+console.log(test.test()); // 'test');
+
+useMixinsForObject(test, mixinD); // if the target does not satisfy the target interfaces of all the mixins, TypeScript will warn about it
+
+console.log(() => assertHaveMixin(test, mixinD, Test)).to.not.throw();
+assertHaveMixin(test, mixinD, Test);
+
+console.log('mixins' in test).true;
+console.log(typeof test.mixins); // 'object');
+console.log(test.fall); // 'fall in mixinD - a - test');
+console.log(test.mixins.mixinD.methodInD()); // 'fall in mixinD - a - test');
+console.log(test.mixins.mixinD.target.fall); // 'fall in mixinD - a - test');
+
+test.fall = 'b';
+
+console.log(test.fall); // 'fall in mixinD - b - test');
+console.log(test.mixins.mixinD.methodInD()); // 'fall in mixinD - b - test');
+console.log(test.mixins.mixinD.target.fall); // 'fall in mixinD - b - test');
+
+console.log(test.test()); // 'fall in mixinD - b - test');
+
+console.log(test.asd()); // 'WWW');
+```
+
+___
 
 ### TypeGuards and Asserts methods
 ##### TypeGuards

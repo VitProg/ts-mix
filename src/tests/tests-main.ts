@@ -3,7 +3,7 @@ import {useMixins, useMixinsForObject} from "../mixin";
 import {assertHaveMixin, assertHaveMixins, haveMixin, haveMixins, isMixin} from "../type-guards";
 import {
     ClassA,
-    ClassB,
+    ClassB, IMain,
     mixinA,
     mixinB,
     mixinC,
@@ -127,10 +127,15 @@ describe("main tests", () => {
 
 
     it('should work correctly method useMixins', () => {
-        class Test {
+        class Test implements IMain {
             // static a = 1;
             // static aa() {}
             test = 'test';
+
+            readonly mainGetter = '1';
+            mainMethod(val: number): string {
+                return val.toString(2);
+            }
         }
 
         const classC = useMixins(Test, mixinA, mixinB);
@@ -160,6 +165,10 @@ describe("main tests", () => {
             test: 'abc',
             m() {
                 return 'm';
+            },
+            mainGetter: '1',
+            mainMethod(val: number): string {
+                return val.toString(2);
             },
         };
 

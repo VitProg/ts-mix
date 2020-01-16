@@ -11,10 +11,14 @@ import {
     MixinsProp,
     MixinTarget,
     UnionToIntersection,
+    ExtractMixinName,
+    ExtractMixinConfig,
+    ExtractMixinTarget,
+    ExtractMixinsTargets,
 } from './types';
 import {assertHaveMixin, assertHaveMixins, haveMixin, haveMixins, isMixin} from './type-guards';
 import {applyMixins, mixin, useMixins, useMixinsForObject} from './mixin';
-
+import {mixinsProp} from './decorators';
 
 export {
     IUseMixins,
@@ -29,7 +33,12 @@ export {
     AnyMixinRecord,
     AnyMixin,
     IMixinAfterInitHandler,
+    ExtractMixinName,
+    ExtractMixinConfig,
+    ExtractMixinTarget,
+    ExtractMixinsTargets,
     haveMixins, haveMixin, assertHaveMixins, assertHaveMixin, isMixin,
     useMixinsForObject, useMixins, mixin,
     applyMixins,
+    mixinsProp,
 };

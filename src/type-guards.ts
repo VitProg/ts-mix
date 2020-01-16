@@ -1,7 +1,7 @@
 import {AnyObject, CheckNever, Constructor, IMixinBase, IUseMixins, Mixin, MixinAssertError, MixinsPropObject} from "./types";
 
 // noinspection JSUnusedLocalSymbols
-export function haveMixin<M extends Mixin<any, any>, Class extends AnyObject | any = never>(
+export function haveMixin<M extends Mixin<any, any, any>, Class extends AnyObject | any = never>(
     v: AnyObject,
     mixin: M,
     vClass?: Class
@@ -15,7 +15,7 @@ export function haveMixin<M extends Mixin<any, any>, Class extends AnyObject | a
 }
 
 // noinspection JSUnusedLocalSymbols
-export function haveMixins<Mixins extends Array<Mixin<any, any>>, Class extends AnyObject | any = never>(
+export function haveMixins<Mixins extends Array<Mixin<any, any, any>>, Class extends AnyObject | any = never>(
     v: AnyObject,
     mixins: Mixins,
     vClass?: Class,
@@ -50,7 +50,7 @@ export function isMixin<M extends IMixinBase<any> = IMixinBase<any>>(value: any)
 
 /// asserts functions
 
-export function assertHaveMixin<M extends Mixin<any, any>, Class extends AnyObject | any = never>(
+export function assertHaveMixin<M extends Mixin<any, any, any>, Class extends AnyObject | any = never>(
     v: AnyObject,
     mixin: M,
     vClass?: Class,
@@ -71,7 +71,7 @@ export function assertHaveMixin<M extends Mixin<any, any>, Class extends AnyObje
 
 
 
-export function assertHaveMixins<MM extends Array<Mixin<any, any>>, Class extends AnyObject | any = never>(
+export function assertHaveMixins<MM extends Array<Mixin<any, any, any>>, Class extends AnyObject | any = never>(
     v: AnyObject,
     mixins: MM,
     vClass?: Class,

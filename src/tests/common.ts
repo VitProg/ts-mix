@@ -1,6 +1,6 @@
 /* tslint:disable:max-classes-per-file variable-name */
 import {mixin, useMixins} from "../mixin";
-import {AnyObject, IMixinAfterInitHandler, MixinFull} from "../types";
+import {IMixinAfterInitHandler} from "../types";
 import * as chai from 'chai';
 import {haveMixin} from "../index";
 
@@ -20,7 +20,7 @@ export interface IMixinA {
 }
 
 export const mixinAName = 'mixinA' as const;
-export const mixinA = mixin<typeof mixinAName, IMixinA, ['initInSetup', 'propInMixin']>({
+export const mixinA = mixin<typeof mixinAName, IMixinA, ['initInSetup', 'propInMixin'], IMain>({
     mixinName: mixinAName,
 
     setup() {
@@ -36,6 +36,16 @@ export const mixinA = mixin<typeof mixinAName, IMixinA, ['initInSetup', 'propInM
         this.propInMixin = 123;
         expect(this.target.propInMixin).to.equal(123);
         expect(this.target.mixins.mixinA.propInMixin).to.equal(123);
+    },
+    rewrite(th) {
+        return {
+            get mainGetter() {
+                return 'mixinA';
+            },
+            mainMethod(val: number): string {
+                return th.target.mainGetter + '#' + val;
+            },
+        };
     },
 
     get testA() {
@@ -96,9 +106,44 @@ export const mixinC = mixin({
 //
 // type ExtractStatic<T extends AnyObject> = Omit<{[key in keyof T]: T[key]}, 'prototype'>;
 
+export const mixinD = mixin<'mixinD', { methodInD: () => string }, [], { readonly fall: string, asd: () => string }>(
+    {
+        mixinName: 'mixinD' as const,
+        rewrite(th) {
+            let fall = 'a';
+            return {
+                get fall() {
+                    return 'fall in mixinD - ' + fall + ' - ' + th.origin.fall;
+                },
+                set fall(v: string) {
+                    fall = v;
+                },
+                asd() {
+                    return 'WWW';
+                },
+            };
+        },
+        methodInD() {
+            return this.target.fall;
+        },
+    }
+);
 
+export interface IMain {
+    readonly mainGetter: string;
 
-export const ClassA = useMixins(class ClassA implements IMixinAfterInitHandler {
+    mainMethod(val: number): string;
+}
+
+export const ClassA = useMixins(class ClassA implements IMixinAfterInitHandler, IMain {
+    get mainGetter() {
+        return 'classA';
+    }
+
+    mainMethod(val: number): string {
+        return this.mainGetter + '#' + val.toString();
+    }
+
     fieldInClassA = '111';
     test: number;
 
@@ -152,12 +197,18 @@ export const ClassB = useMixins(class ClassB extends ClassA {
 }, mixinB, mixinC);
 
 
-export const TestUseMixinB = useMixins(class TestUseMixinB {
+export const TestUseMixinB = useMixins(class TestUseMixinB implements IMain {
     name = 'b';
     fieldInB: string = 'test';
 
     constructor(readonly str: string) {
         //
+    }
+
+    readonly mainGetter: string = 'TestUseMixinB';
+
+    mainMethod(val: number): string {
+        return this.mainGetter + '#' + val.toString();
     }
 }, mixinA);
 
@@ -183,3 +234,11 @@ export const TestUseMixinBBB = useMixins(class TestUseMixinBBB extends TestUseMi
         return 1;
     }
 }, mixinC);
+
+export const testRewrite = useMixins(class TestRewrite {
+    name = 'testRewrite';
+    fall = 'TestRewrite';
+    asd() {
+        return 'i am ' + this.fall;
+    }
+}, mixinD);

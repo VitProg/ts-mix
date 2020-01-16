@@ -1,7 +1,17 @@
 /* tslint:disable:max-classes-per-file max-line-length */
 import * as chai from 'chai';
-import {applyMixins, assertHaveMixin, assertHaveMixins, haveMixin, haveMixins, mixin, useMixinsForObject} from "../index";
+import {
+    applyMixins,
+    assertHaveMixin,
+    assertHaveMixins,
+    haveMixin,
+    haveMixins,
+    mixin, mixinsProp,
+    MixinsProp,
+    useMixinsForObject
+} from "../index";
 import {useMixins} from "../mixin";
+import {mixinD} from "./common";
 
 const expect = chai.expect;
 
@@ -182,6 +192,60 @@ describe("tests examples in readme.md", () => {
             expect(test.mixins.mixinB.methodB()).to.equal("test-b");
             expect(test.mixins.mixinA.methodInMixin()).to.equal("test-a");
         }
+    });
+
+    it('mixinsProp decorator.', () => {
+        class TestDecorator {
+            @mixinsProp(mixinB) mixins!: MixinsProp<[typeof mixinB]>;
+
+            constructor() {
+                expect(Object.keys(this.mixins)).to.deep.equal(['mixinB']);
+            }
+        }
+        const test = new TestDecorator();
+
+        expect('mixins' in test).true;
+        expect(typeof test.mixins).equal('object');
+        expect(test.mixins.mixinB.methodB()).equal('test-b');
+        expect(test.mixins.mixinB.sameNameMethod()).equal('from mixinB');
+    });
+
+    it('rewrite test', () => {
+        class Test {
+            fall = 'test';
+            asd() {
+                return 'Hello my name ' + this.fall;
+            }
+            test() {
+                return this.fall;
+            }
+        }
+        const test = new Test();
+
+        expect(test.fall).equal('test');
+        expect(test.asd()).equal('Hello my name test');
+        expect(test.test()).equal('test');
+
+        useMixinsForObject(test, mixinD);
+
+        expect(() => assertHaveMixin(test, mixinD, Test)).to.not.throw();
+        assertHaveMixin(test, mixinD, Test);
+
+        expect('mixins' in test).true;
+        expect(typeof test.mixins).equal('object');
+        expect(test.fall).equal('fall in mixinD - a - test');
+        expect(test.mixins.mixinD.methodInD()).equal('fall in mixinD - a - test');
+        expect(test.mixins.mixinD.target.fall).equal('fall in mixinD - a - test');
+
+        test.fall = 'b';
+
+        expect(test.fall).equal('fall in mixinD - b - test');
+        expect(test.mixins.mixinD.methodInD()).equal('fall in mixinD - b - test');
+        expect(test.mixins.mixinD.target.fall).equal('fall in mixinD - b - test');
+
+        expect(test.test()).equal('fall in mixinD - b - test');
+
+        expect(test.asd()).equal('WWW');
     });
 
 

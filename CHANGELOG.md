@@ -1,3 +1,8 @@
+#### v0.7.0
+- add - decorator `@mixinsProp`
+- add - typed `target` in mixin declaration
+- add - mixin property `rewrite` - mixin can rewrite some methods or fields in target
+
 #### v0.6.2
 - bugfix - copy mixin config object when applying mixin
 
